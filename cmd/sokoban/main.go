@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	g := game.InitGame()
-	engine.MainLoop(g)
+	ge := game.InitGame()
+	engine.MainLoop(ge)
 }

@@ -2,6 +2,8 @@ package sokoban
 
 import (
 	"fmt"
+
+	"github.com/tommyblue/sokoban/utils"
 )
 
 // Level describes a level of the game
@@ -22,10 +24,13 @@ func (l *Level) CalculateSize() {
 	}
 	l.Height = h
 	l.Width = w
-	l.PrintInfo()
+
+	if utils.IsDebugEnv() {
+		l.printInfo()
+	}
 }
 
-func (l *Level) PrintInfo() {
+func (l *Level) printInfo() {
 	fmt.Printf("ID: %d\n", l.ID)
 	fmt.Printf("Size: %dx%d\n", l.Width, l.Height)
 }
@@ -33,8 +38,4 @@ func (l *Level) PrintInfo() {
 type Game struct {
 	CurrentLevel *Level
 	Levels       []*Level
-}
-
-type GameEngine interface {
-	LoadLevels() *[]Level
 }

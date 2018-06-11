@@ -1,6 +1,10 @@
 package utils
 
-import "bufio"
+import (
+	"bufio"
+	"path"
+	"runtime"
+)
 
 func ReadLine(r *bufio.Reader) (string, error) {
 	var (
@@ -13,4 +17,12 @@ func ReadLine(r *bufio.Reader) (string, error) {
 		ln = append(ln, line...)
 	}
 	return string(ln), err
+}
+
+func GetRelativePath(filepath string) string {
+	_, filename, _, ok := runtime.Caller(1)
+	if !ok {
+		panic("error")
+	}
+	return path.Join(path.Dir(filename), filepath)
 }

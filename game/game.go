@@ -9,11 +9,14 @@ import (
 	"strings"
 
 	"github.com/tommyblue/sokoban"
+	"github.com/tommyblue/sokoban/ui"
 	"github.com/tommyblue/sokoban/utils"
 )
 
 type GameEngine struct {
 	Game *sokoban.Game
+	// TODO: Remove ui dependency (move to sokoban?)
+	GUI *ui.GUI
 }
 
 // InitGame initializes the game
@@ -84,6 +87,8 @@ func getLevelsFile() (*os.File, func()) {
 		panic("error")
 	}
 	filepath := path.Join(path.Dir(filename), "../levels.txt")
+
+	filepath = utils.GetRelativePath("../levels.txt")
 	file, err := os.Open(filepath)
 
 	closeFn := func() {

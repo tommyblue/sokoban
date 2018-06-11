@@ -1,39 +1,63 @@
 package ui
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"time"
 
-func loop() {
-	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
-		panic(err)
+	"github.com/veandco/go-sdl2/sdl"
+)
+
+type GUI struct {
+	Timer         time.Time
+	PreviousTimer time.Time
+	window        *sdl.Window
+	renderer      *sdl.Renderer
+	countedFrames uint32
+	isRunning     bool
+}
+
+// Init UI components
+func (gui *GUI) Init() {
+	gui.initSdl()
+	gui.initFonts()
+	gui.initWindow()
+	gui.initRenderer()
+	gui.isRunning = true
+}
+
+// Close ui components
+func (gui *GUI) Close() {
+	gui.closeRenderer()
+	gui.closeWindow()
+	gui.closeSdl()
+}
+
+func (gui *GUI) Loop() {
+	gui.Timer = time.Now()
+	for gui.isRunning {
+		gui.PreviousTimer = gui.Timer
+		gui.Timer = time.Now()
+		gui.manageInput()
+		// updateStatus()
+		gui.render()
 	}
-	defer sdl.Quit()
+}
 
-	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		800, 600, sdl.WINDOW_SHOWN)
-	if err != nil {
-		panic(err)
-	}
-	defer window.Destroy()
-
-	surface, err := window.GetSurface()
-	if err != nil {
-		panic(err)
-	}
-	surface.FillRect(nil, 0)
-
-	rect := sdl.Rect{0, 0, 200, 200}
-	surface.FillRect(&rect, 0xffff0000)
-	window.UpdateSurface()
-
-	running := true
-	for running {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				println("Quit")
-				running = false
-				break
-			}
+func (gui *GUI) manageInput() {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch event.(type) {
+		case *sdl.QuitEvent:
+			println("Quit")
+			gui.isRunning = false
+			break
 		}
 	}
+}
+
+func (gui *GUI) render() {
+	gui.syncFPS()
+	gui.countedFrames++
+
+	gui.renderer.Present()
+	gui.renderer.SetDrawColor(167, 125, 83, 255)
+	gui.renderer.Clear()
 }
