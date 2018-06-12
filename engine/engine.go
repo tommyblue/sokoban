@@ -19,5 +19,3 @@ func MainLoop(ge *game.GameEngine) {
 		gui.Draw(ge.Game.CurrentLevel)
 	}
 }
-
-// func updateStatus() {}

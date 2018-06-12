@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"strings"
 	"time"
 
 	"github.com/tommyblue/sokoban"
@@ -62,8 +61,8 @@ func (gui *GUI) finalize() {
 
 func (gui *GUI) drawLevel(level *sokoban.Level) {
 	for i, row := range level.Tiles {
-		for j, tile := range strings.Split(row, "") {
-			image := gui.imagesCache[tile]
+		for j, tileID := range row {
+			image := gui.getImage(level, i, j, tileID)
 			src := image.Rect
 
 			x := imageSide * int32(j)
@@ -73,4 +72,18 @@ func (gui *GUI) drawLevel(level *sokoban.Level) {
 			utils.Check(err)
 		}
 	}
+}
+
+func (gui *GUI) getImage(level *sokoban.Level, i, j int, tileID string) ImageStruct {
+	if tileID == "@" && (level.CurrentPlayerPosition.PositionI != i || level.CurrentPlayerPosition.PositionJ != j) {
+		// player has moved, return floor tile
+		return gui.imagesCache["_"]
+	}
+
+	if level.CurrentPlayerPosition.PositionI == i && level.CurrentPlayerPosition.PositionJ == j {
+		// The player has moved here
+		return gui.imagesCache["@"]
+	}
+
+	return gui.imagesCache[tileID]
 }

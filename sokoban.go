@@ -8,18 +8,37 @@ import (
 
 // Level describes a level of the game
 type Level struct {
-	ID     int
-	Width  int
-	Height int
-	Tiles  []string
+	ID                    int
+	Width                 int
+	Height                int
+	Tiles                 [][]string
+	CurrentPlayerPosition *PlayerPosition
 }
 
-func (l *Level) CalculateSize() {
+type PlayerPosition struct {
+	PositionI int
+	PositionJ int
+}
+
+type Game struct {
+	CurrentLevel *Level
+	Levels       []*Level
+}
+
+func (l *Level) Finalize() {
 	h, w := 0, 0
-	for i, line := range l.Tiles {
+	for i, row := range l.Tiles {
 		h = i + 1
-		if w < len(line) {
-			w = len(line)
+		if w < len(row) {
+			w = len(row)
+		}
+		for j, tile := range row {
+			if tile == "@" {
+				l.CurrentPlayerPosition = &PlayerPosition{
+					PositionI: i,
+					PositionJ: j,
+				}
+			}
 		}
 	}
 	l.Height = h
@@ -33,9 +52,4 @@ func (l *Level) CalculateSize() {
 func (l *Level) printInfo() {
 	fmt.Printf("ID: %d\n", l.ID)
 	fmt.Printf("Size: %dx%d\n", l.Width, l.Height)
-}
-
-type Game struct {
-	CurrentLevel *Level
-	Levels       []*Level
 }

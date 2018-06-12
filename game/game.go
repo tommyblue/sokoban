@@ -31,13 +31,28 @@ func InitGame() *GameEngine {
 
 	ge.loadLevels()
 	// Let's start from the first level
-	ge.Game.CurrentLevel = ge.Game.Levels[1]
+	ge.Game.CurrentLevel = ge.Game.Levels[0]
 	return &ge
 }
 
 func (ge *GameEngine) ManageInput() {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch event.(type) {
+		switch t := event.(type) {
+		case *sdl.KeyUpEvent:
+			switch t.Keysym.Scancode {
+			case sdl.SCANCODE_ESCAPE:
+				println("Quit")
+				ge.IsRunning = false
+				break
+			case sdl.SCANCODE_LEFT:
+				ge.MoveLeft()
+			case sdl.SCANCODE_RIGHT:
+				ge.MoveRight()
+			case sdl.SCANCODE_UP:
+				ge.MoveUp()
+			case sdl.SCANCODE_DOWN:
+				ge.MoveDown()
+			}
 		case *sdl.QuitEvent:
 			println("Quit")
 			ge.IsRunning = false
@@ -73,7 +88,7 @@ func (ge *GameEngine) parseLevelString(
 ) (int, *sokoban.Level, error) {
 	tmpLevelID := currentLevelID
 	if line == ";END" {
-		tmpLevel.CalculateSize()
+		tmpLevel.Finalize()
 		ge.Game.Levels = append(ge.Game.Levels, tmpLevel)
 		return tmpLevelID, tmpLevel, errors.New("Reached end of file")
 	}
@@ -81,13 +96,13 @@ func (ge *GameEngine) parseLevelString(
 	if strings.HasPrefix(line, ";LEVEL") {
 		// Do not add an empty level if this is the first one
 		if tmpLevel != nil {
-			tmpLevel.CalculateSize()
+			tmpLevel.Finalize()
 			ge.Game.Levels = append(ge.Game.Levels, tmpLevel)
 		}
 		tmpLevelID++
 		tmpLevel = &sokoban.Level{ID: tmpLevelID}
 	} else {
-		tmpLevel.Tiles = append(tmpLevel.Tiles, line)
+		tmpLevel.Tiles = append(tmpLevel.Tiles, strings.Split(line, ""))
 	}
 	return tmpLevelID, tmpLevel, nil
 }

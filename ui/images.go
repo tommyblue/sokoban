@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"strings"
-
 	"github.com/tommyblue/sokoban/utils"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -36,7 +34,7 @@ func (gui *GUI) preloadImages() {
 		srcRect := sdl.Rect{X: 0, Y: 0, W: imageSide, H: imageSide}
 
 		if tileID != "~" {
-			if strings.HasPrefix(tileName, "man-") {
+			if tileID == "@" {
 				floor, err := img.Load(utils.GetRelativePath("../assets/images/floor.png"))
 				utils.Check(err)
 
