@@ -13,8 +13,11 @@ func MainLoop(ge *game.GameEngine) {
 	gui.Init()
 	defer gui.Close()
 
-	gui.Loop()
+	ge.IsRunning = true
+	for ge.IsRunning {
+		ge.ManageInput()
+		gui.Draw(ge.Game.CurrentLevel)
+	}
 }
 
-// func manageInput()  {}
 // func updateStatus() {}

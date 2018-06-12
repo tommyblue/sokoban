@@ -1,8 +1,11 @@
 package ui
 
 import (
+	"strings"
 	"time"
 
+	"github.com/tommyblue/sokoban"
+	"github.com/tommyblue/sokoban/utils"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -13,6 +16,13 @@ type GUI struct {
 	renderer      *sdl.Renderer
 	countedFrames uint32
 	isRunning     bool
+	imagesCache   map[string]ImageStruct
+}
+
+type ImageStruct struct {
+	Name  string
+	Image *sdl.Texture
+	Rect  sdl.Rect
 }
 
 // Init UI components
@@ -21,6 +31,7 @@ func (gui *GUI) Init() {
 	gui.initFonts()
 	gui.initWindow()
 	gui.initRenderer()
+	gui.preloadImages()
 	gui.isRunning = true
 }
 
@@ -31,33 +42,35 @@ func (gui *GUI) Close() {
 	gui.closeSdl()
 }
 
-func (gui *GUI) Loop() {
+func (gui *GUI) Draw(level *sokoban.Level) {
+	gui.PreviousTimer = gui.Timer
 	gui.Timer = time.Now()
-	for gui.isRunning {
-		gui.PreviousTimer = gui.Timer
-		gui.Timer = time.Now()
-		gui.manageInput()
-		// updateStatus()
-		gui.render()
-	}
+	// updateStatus()
+	gui.drawLevel(level)
+	gui.finalize()
 }
 
-func (gui *GUI) manageInput() {
-	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch event.(type) {
-		case *sdl.QuitEvent:
-			println("Quit")
-			gui.isRunning = false
-			break
-		}
-	}
-}
+func (gui *GUI) finalize() {
 
-func (gui *GUI) render() {
 	gui.syncFPS()
 	gui.countedFrames++
 
 	gui.renderer.Present()
 	gui.renderer.SetDrawColor(167, 125, 83, 255)
 	gui.renderer.Clear()
+}
+
+func (gui *GUI) drawLevel(level *sokoban.Level) {
+	for i, row := range level.Tiles {
+		for j, tile := range strings.Split(row, "") {
+			image := gui.imagesCache[tile]
+			src := image.Rect
+
+			x := imageSide * int32(j)
+			y := imageSide * int32(i)
+			dst := sdl.Rect{X: x, Y: y, W: imageSide, H: imageSide}
+			err := gui.renderer.Copy(image.Image, &src, &dst)
+			utils.Check(err)
+		}
+	}
 }

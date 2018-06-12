@@ -11,10 +11,12 @@ import (
 	"github.com/tommyblue/sokoban"
 	"github.com/tommyblue/sokoban/ui"
 	"github.com/tommyblue/sokoban/utils"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type GameEngine struct {
-	Game *sokoban.Game
+	IsRunning bool
+	Game      *sokoban.Game
 	// TODO: Remove ui dependency (move to sokoban?)
 	GUI *ui.GUI
 }
@@ -29,10 +31,19 @@ func InitGame() *GameEngine {
 
 	ge.loadLevels()
 	// Let's start from the first level
-	// TODO: load the last level of the user
-	firstLevel := sokoban.Level{ID: 1}
-	ge.Game.CurrentLevel = &firstLevel
+	ge.Game.CurrentLevel = ge.Game.Levels[1]
 	return &ge
+}
+
+func (ge *GameEngine) ManageInput() {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch event.(type) {
+		case *sdl.QuitEvent:
+			println("Quit")
+			ge.IsRunning = false
+			break
+		}
+	}
 }
 
 func (ge *GameEngine) loadLevels() {

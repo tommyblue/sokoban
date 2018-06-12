@@ -17,3 +17,5 @@ var font *ttf.Font
 var lastTimestamp time.Time
 var lastFPS int
 var countSinceLast int
+
+var imageSide int32 = 32

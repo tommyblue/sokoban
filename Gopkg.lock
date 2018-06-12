@@ -4,6 +4,7 @@
 [[projects]]
   name = "github.com/veandco/go-sdl2"
   packages = [
+    "img",
     "sdl",
     "ttf"
   ]
@@ -13,6 +14,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f45750330cefd1c8eabec775ab451f9206715a36083213552532c12ab89f9433"
+  inputs-digest = "505648958704ffae1763dcb43a1b85192921ec50ce46ed322ff7badb4b182d9e"
   solver-name = "gps-cdcl"
   solver-version = 1
