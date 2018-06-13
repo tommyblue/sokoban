@@ -12,7 +12,8 @@ Each file contains the matrix of the level where each tile can have one of these
 - `#`: wall
 - `$`: box
 - `.`: target (where to move the box)
-- ` `: empty space, where the player/boxes can be moved
+- `+`: box on a target
+- `~`: empty space, where the player/boxes can be moved
 
 ## Assets
 
@@ -23,3 +24,7 @@ license.
 ## Setup
 
 You need SDL2 installed. You can find the instructions for supported systems in the [Go-SDL2 page](https://github.com/veandco/go-sdl2)
+
+## Compile and run
+
+`DEBUG=1 go run cmd/sokoban/main.go`
