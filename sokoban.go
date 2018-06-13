@@ -25,6 +25,7 @@ type Level struct {
 	Height                int
 	Tiles                 [][]Tile
 	CurrentPlayerPosition *PlayerPosition
+	TilesToFix            int
 }
 
 type PlayerPosition struct {
@@ -41,6 +42,7 @@ func (l *Level) CloneFrom(orig *Level) {
 	l.ID = orig.ID
 	l.Width = orig.Width
 	l.Height = orig.Height
+	l.TilesToFix = orig.TilesToFix
 	l.CurrentPlayerPosition = &PlayerPosition{
 		PositionI: orig.CurrentPlayerPosition.PositionI,
 		PositionJ: orig.CurrentPlayerPosition.PositionJ,
@@ -62,11 +64,14 @@ func (l *Level) Finalize() {
 			w = len(row)
 		}
 		for j, tile := range row {
-			if tile == "@" {
+			if tile == Player {
 				l.CurrentPlayerPosition = &PlayerPosition{
 					PositionI: i,
 					PositionJ: j,
 				}
+			}
+			if tile == Target {
+				l.TilesToFix++
 			}
 		}
 	}

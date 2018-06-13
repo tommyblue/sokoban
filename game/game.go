@@ -31,11 +31,14 @@ func InitGame() *GameEngine {
 
 	ge.loadLevels()
 	// Let's start from the first level.
-	// Make a copy so that the original level is always available
-	ge.Game.CurrentLevel = &sokoban.Level{}
-	ge.Game.CurrentLevel.CloneFrom(ge.Game.Levels[1])
+	ge.loadLevel(1)
 
 	return &ge
+}
+
+func (ge *GameEngine) loadLevel(levelID int) {
+	ge.Game.CurrentLevel = &sokoban.Level{}
+	ge.Game.CurrentLevel.CloneFrom(ge.Game.Levels[levelID])
 }
 
 func (ge *GameEngine) ManageInput() {

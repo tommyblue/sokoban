@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/tommyblue/sokoban"
 )
 
@@ -61,19 +63,30 @@ func (ge *GameEngine) move(d direction) {
 		replaceTile := sokoban.Floor
 		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI][nextJ] == sokoban.Target {
 			replaceTile = sokoban.Target
+			ge.Game.CurrentLevel.TilesToFix++
 		}
 		ge.Game.CurrentLevel.Tiles[nextI][nextJ] = replaceTile
 		boxTile := sokoban.Box
 		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI+d.dX][nextJ+d.dY] == sokoban.Target {
 			boxTile = sokoban.BoxOnTarget
+			ge.Game.CurrentLevel.TilesToFix--
 		}
 		ge.Game.CurrentLevel.Tiles[nextI+d.dX][nextJ+d.dY] = boxTile
+	}
+}
+
+func (ge *GameEngine) checkVictory() {
+	if ge.Game.CurrentLevel.TilesToFix == 0 {
+		fmt.Println("Victory!")
+		// Move to next level
+		ge.loadLevel(ge.Game.CurrentLevel.ID + 1)
 	}
 }
 
 func (ge *GameEngine) moveIfPossible(d direction) *sokoban.PlayerPosition {
 	if ge.canMoveThere(d) {
 		ge.move(d)
+		ge.checkVictory()
 	}
 	return ge.Game.CurrentLevel.CurrentPlayerPosition
 }
