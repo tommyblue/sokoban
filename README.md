@@ -3,6 +3,8 @@
 A Go implementation of the famous puzzle game [Sokoban](http://www.sokoban.jp/) by Hiroyuki
 Imabayashi.
 
+![Alt text](screenshot.jpg?raw=true "Screenshot")
+
 ## Levels
 
 The levels are stored as text file in the `assets/levels/` folder.
