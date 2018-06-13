@@ -30,8 +30,10 @@ func InitGame() *GameEngine {
 	}
 
 	ge.loadLevels()
-	// Let's start from the first level
-	ge.Game.CurrentLevel = ge.Game.Levels[0]
+	// Let's start from the first level.
+	// Make a copy so that the original level is always available
+	ge.Game.CurrentLevel = &sokoban.Level{}
+	*ge.Game.CurrentLevel = *ge.Game.Levels[0]
 	return &ge
 }
 
@@ -102,7 +104,12 @@ func (ge *GameEngine) parseLevelString(
 		tmpLevelID++
 		tmpLevel = &sokoban.Level{ID: tmpLevelID}
 	} else {
-		tmpLevel.Tiles = append(tmpLevel.Tiles, strings.Split(line, ""))
+		strTiles := strings.Split(line, "")
+		var tiles []sokoban.Tile
+		for _, t := range strTiles {
+			tiles = append(tiles, sokoban.Tile(t))
+		}
+		tmpLevel.Tiles = append(tmpLevel.Tiles, tiles)
 	}
 	return tmpLevelID, tmpLevel, nil
 }

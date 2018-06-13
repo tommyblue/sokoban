@@ -6,12 +6,24 @@ import (
 	"github.com/tommyblue/sokoban/utils"
 )
 
+type Tile string
+
+const (
+	Wall        Tile = "#"
+	Target      Tile = "."
+	Floor       Tile = "_"
+	Box         Tile = "$"
+	BoxOnTarget Tile = "+"
+	Empty       Tile = "~"
+	Player      Tile = "@"
+)
+
 // Level describes a level of the game
 type Level struct {
 	ID                    int
 	Width                 int
 	Height                int
-	Tiles                 [][]string
+	Tiles                 [][]Tile
 	CurrentPlayerPosition *PlayerPosition
 }
 

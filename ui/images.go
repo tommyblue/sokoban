@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/tommyblue/sokoban"
 	"github.com/tommyblue/sokoban/utils"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -8,15 +9,16 @@ import (
 
 func (gui *GUI) preloadImages() {
 	if gui.imagesCache == nil {
-		gui.imagesCache = make(map[string]ImageStruct)
+		gui.imagesCache = make(map[sokoban.Tile]ImageStruct)
 	}
-	tiles := map[string]string{
-		"#": "wall",
-		".": "target",
-		"_": "floor",
-		"$": "box",
-		"~": "empty",
-		"@": "man-bottom",
+	tiles := map[sokoban.Tile]string{
+		sokoban.Wall:        "wall",
+		sokoban.Target:      "target",
+		sokoban.Floor:       "floor",
+		sokoban.Box:         "box",
+		sokoban.BoxOnTarget: "box-ok",
+		sokoban.Empty:       "empty",
+		sokoban.Player:      "man-bottom",
 	}
 	for tileID, tileName := range tiles {
 		surface, err := sdl.CreateRGBSurface(

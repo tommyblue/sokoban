@@ -1,6 +1,8 @@
 package game
 
-import "github.com/tommyblue/sokoban"
+import (
+	"github.com/tommyblue/sokoban"
+)
 
 type direction struct {
 	dX int
@@ -33,14 +35,31 @@ func (ge *GameEngine) canMoveThere(d direction) bool {
 	newJ := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ + d.dY
 	tileID := ge.Game.CurrentLevel.Tiles[newI][newJ]
 
-	return tileID != "#"
+	// Can't move through walls
+	if tileID == sokoban.Wall {
+		return false
+	}
+	// Can move to box if next tile isn't box or wall
+	if tileID == sokoban.Box {
+		nextTile := ge.Game.CurrentLevel.Tiles[newI+d.dX][newJ+d.dY]
+		return nextTile != sokoban.Box && nextTile != sokoban.Wall
+	}
+	return true
 }
 
 func (ge *GameEngine) move(d direction) {
 	currI := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI
 	currJ := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ
-	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI = currI + d.dX
-	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ = currJ + d.dY
+	nextI := currI + d.dX
+	nextJ := currJ + d.dY
+	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI = nextI
+	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ = nextJ
+
+	// Check if a box must be moved
+	if ge.Game.CurrentLevel.Tiles[nextI][nextJ] == sokoban.Box {
+		ge.Game.CurrentLevel.Tiles[nextI][nextJ] = sokoban.Floor
+		ge.Game.CurrentLevel.Tiles[nextI+d.dX][nextJ+d.dY] = sokoban.Box
+	}
 }
 
 func (ge *GameEngine) moveIfPossible(d direction) *sokoban.PlayerPosition {

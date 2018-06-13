@@ -15,7 +15,7 @@ type GUI struct {
 	renderer      *sdl.Renderer
 	countedFrames uint32
 	isRunning     bool
-	imagesCache   map[string]ImageStruct
+	imagesCache   map[sokoban.Tile]ImageStruct
 }
 
 type ImageStruct struct {
@@ -74,7 +74,7 @@ func (gui *GUI) drawLevel(level *sokoban.Level) {
 	}
 }
 
-func (gui *GUI) getImage(level *sokoban.Level, i, j int, tileID string) ImageStruct {
+func (gui *GUI) getImage(level *sokoban.Level, i, j int, tileID sokoban.Tile) ImageStruct {
 	if tileID == "@" && (level.CurrentPlayerPosition.PositionI != i || level.CurrentPlayerPosition.PositionJ != j) {
 		// player has moved, return floor tile
 		return gui.imagesCache["_"]
