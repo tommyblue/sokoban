@@ -40,9 +40,9 @@ func (ge *GameEngine) canMoveThere(d direction) bool {
 		return false
 	}
 	// Can move to box if next tile isn't box or wall
-	if tileID == sokoban.Box {
+	if tileID == sokoban.Box || tileID == sokoban.BoxOnTarget {
 		nextTile := ge.Game.CurrentLevel.Tiles[newI+d.dX][newJ+d.dY]
-		return nextTile != sokoban.Box && nextTile != sokoban.Wall
+		return nextTile != sokoban.Box && nextTile != sokoban.BoxOnTarget && nextTile != sokoban.Wall
 	}
 	return true
 }
@@ -56,9 +56,18 @@ func (ge *GameEngine) move(d direction) {
 	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ = nextJ
 
 	// Check if a box must be moved
-	if ge.Game.CurrentLevel.Tiles[nextI][nextJ] == sokoban.Box {
-		ge.Game.CurrentLevel.Tiles[nextI][nextJ] = sokoban.Floor
-		ge.Game.CurrentLevel.Tiles[nextI+d.dX][nextJ+d.dY] = sokoban.Box
+	if ge.Game.CurrentLevel.Tiles[nextI][nextJ] == sokoban.Box ||
+		ge.Game.CurrentLevel.Tiles[nextI][nextJ] == sokoban.BoxOnTarget {
+		replaceTile := sokoban.Floor
+		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI][nextJ] == sokoban.Target {
+			replaceTile = sokoban.Target
+		}
+		ge.Game.CurrentLevel.Tiles[nextI][nextJ] = replaceTile
+		boxTile := sokoban.Box
+		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI+d.dX][nextJ+d.dY] == sokoban.Target {
+			boxTile = sokoban.BoxOnTarget
+		}
+		ge.Game.CurrentLevel.Tiles[nextI+d.dX][nextJ+d.dY] = boxTile
 	}
 }
 

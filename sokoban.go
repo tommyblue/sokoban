@@ -34,7 +34,24 @@ type PlayerPosition struct {
 
 type Game struct {
 	CurrentLevel *Level
-	Levels       []*Level
+	Levels       map[int]*Level
+}
+
+func (l *Level) CloneFrom(orig *Level) {
+	l.ID = orig.ID
+	l.Width = orig.Width
+	l.Height = orig.Height
+	l.CurrentPlayerPosition = &PlayerPosition{
+		PositionI: orig.CurrentPlayerPosition.PositionI,
+		PositionJ: orig.CurrentPlayerPosition.PositionJ,
+	}
+	for _, row := range orig.Tiles {
+		var tiles []Tile
+		for _, tile := range row {
+			tiles = append(tiles, tile)
+		}
+		l.Tiles = append(l.Tiles, tiles)
+	}
 }
 
 func (l *Level) Finalize() {

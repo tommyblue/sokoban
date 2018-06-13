@@ -25,7 +25,7 @@ type GameEngine struct {
 func InitGame() *GameEngine {
 	ge := GameEngine{
 		Game: &sokoban.Game{
-			Levels: []*sokoban.Level{},
+			Levels: map[int]*sokoban.Level{},
 		},
 	}
 
@@ -33,7 +33,8 @@ func InitGame() *GameEngine {
 	// Let's start from the first level.
 	// Make a copy so that the original level is always available
 	ge.Game.CurrentLevel = &sokoban.Level{}
-	*ge.Game.CurrentLevel = *ge.Game.Levels[0]
+	ge.Game.CurrentLevel.CloneFrom(ge.Game.Levels[1])
+
 	return &ge
 }
 
@@ -91,7 +92,7 @@ func (ge *GameEngine) parseLevelString(
 	tmpLevelID := currentLevelID
 	if line == ";END" {
 		tmpLevel.Finalize()
-		ge.Game.Levels = append(ge.Game.Levels, tmpLevel)
+		ge.Game.Levels[tmpLevel.ID] = tmpLevel
 		return tmpLevelID, tmpLevel, errors.New("Reached end of file")
 	}
 
@@ -99,7 +100,7 @@ func (ge *GameEngine) parseLevelString(
 		// Do not add an empty level if this is the first one
 		if tmpLevel != nil {
 			tmpLevel.Finalize()
-			ge.Game.Levels = append(ge.Game.Levels, tmpLevel)
+			ge.Game.Levels[tmpLevel.ID] = tmpLevel
 		}
 		tmpLevelID++
 		tmpLevel = &sokoban.Level{ID: tmpLevelID}
