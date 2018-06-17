@@ -14,7 +14,6 @@ type GUI struct {
 	window        *sdl.Window
 	renderer      *sdl.Renderer
 	countedFrames uint32
-	isRunning     bool
 	imagesCache   map[sokoban.Tile]ImageStruct
 }
 
@@ -31,7 +30,6 @@ func (gui *GUI) Init() {
 	gui.initWindow()
 	gui.initRenderer()
 	gui.preloadImages()
-	gui.isRunning = true
 }
 
 // Close ui components

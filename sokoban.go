@@ -28,6 +28,14 @@ type Level struct {
 	TilesToFix            int
 }
 
+// GameState is the state of the game
+type GameState struct {
+	IsRunning         bool
+	ShowSplash        bool
+	ShowLevel         bool
+	ShowLevelComplete bool
+}
+
 type PlayerPosition struct {
 	PositionI int
 	PositionJ int

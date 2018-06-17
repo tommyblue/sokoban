@@ -16,23 +16,27 @@ var left = direction{dX: 0, dY: -1}
 var up = direction{dX: -1, dY: 0}
 var down = direction{dX: 1, dY: 0}
 
-func (ge *GameEngine) MoveLeft() {
+// MoveLeft moves... left
+func (ge *Engine) MoveLeft() {
 	ge.moveIfPossible(left)
 }
 
-func (ge *GameEngine) MoveRight() {
+// MoveRight moves... right
+func (ge *Engine) MoveRight() {
 	ge.moveIfPossible(right)
 }
 
-func (ge *GameEngine) MoveUp() {
+// MoveUp moves... up
+func (ge *Engine) MoveUp() {
 	ge.moveIfPossible(up)
 }
 
-func (ge *GameEngine) MoveDown() {
+// MoveDown moves... down
+func (ge *Engine) MoveDown() {
 	ge.moveIfPossible(down)
 }
 
-func (ge *GameEngine) canMoveThere(d direction) bool {
+func (ge *Engine) canMoveThere(d direction) bool {
 	newI := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI + d.dX
 	newJ := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ + d.dY
 	tileID := ge.Game.CurrentLevel.Tiles[newI][newJ]
@@ -49,7 +53,7 @@ func (ge *GameEngine) canMoveThere(d direction) bool {
 	return true
 }
 
-func (ge *GameEngine) move(d direction) {
+func (ge *Engine) move(d direction) {
 	currI := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI
 	currJ := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ
 	nextI := currI + d.dX
@@ -75,7 +79,7 @@ func (ge *GameEngine) move(d direction) {
 	}
 }
 
-func (ge *GameEngine) checkVictory() {
+func (ge *Engine) checkVictory() {
 	if ge.Game.CurrentLevel.TilesToFix == 0 {
 		fmt.Println("Victory!")
 		// Move to next level
@@ -83,7 +87,7 @@ func (ge *GameEngine) checkVictory() {
 	}
 }
 
-func (ge *GameEngine) moveIfPossible(d direction) *sokoban.PlayerPosition {
+func (ge *Engine) moveIfPossible(d direction) *sokoban.PlayerPosition {
 	if ge.canMoveThere(d) {
 		ge.move(d)
 		ge.checkVictory()
