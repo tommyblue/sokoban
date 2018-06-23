@@ -43,7 +43,11 @@ func InitGame() *Engine {
 func MainLoop(ge *Engine) {
 	ge.GameState.IsRunning = true
 	for ge.GameState.IsRunning {
-		ge.ManageInput()
+		ge.GUI.ManageInput(ge)
 		ge.ManageGame()
 	}
+}
+
+func (ge *Engine) SetRunningState(state bool) {
+	ge.GameState.IsRunning = state
 }

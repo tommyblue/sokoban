@@ -1,16 +1,24 @@
-package game
+package ui
 
 import "github.com/veandco/go-sdl2/sdl"
 
+type IGameEngine interface {
+	MoveLeft()
+	MoveRight()
+	MoveUp()
+	MoveDown()
+	SetRunningState(bool)
+}
+
 // ManageInput checks input from the user (mainly keyboard)
-func (ge *Engine) ManageInput() {
+func (gui *GUI) ManageInput(ge IGameEngine) {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
 		case *sdl.KeyUpEvent:
 			switch t.Keysym.Scancode {
 			case sdl.SCANCODE_ESCAPE:
 				println("Quit")
-				ge.GameState.IsRunning = false
+				ge.SetRunningState(false)
 				break
 			case sdl.SCANCODE_LEFT:
 				ge.MoveLeft()
@@ -23,7 +31,7 @@ func (ge *Engine) ManageInput() {
 			}
 		case *sdl.QuitEvent:
 			println("Quit")
-			ge.GameState.IsRunning = false
+			ge.SetRunningState(false)
 			break
 		}
 	}
