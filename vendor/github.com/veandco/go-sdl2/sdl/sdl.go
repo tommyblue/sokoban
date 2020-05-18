@@ -1,24 +1,37 @@
+// Package sdl is SDL2 wrapped for Go users. It enables interoperability between Go and the SDL2 library which is written in C. That means the original SDL2 installation is required for this to work. SDL2 is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
 package sdl
 
-// #cgo windows LDFLAGS: -lSDL2
-// #cgo linux freebsd darwin pkg-config: sdl2
-// #include "sdl_wrapper.h"
+/*
+#include "sdl_wrapper.h"
+
+#if !(SDL_VERSION_ATLEAST(2,0,9))
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_INIT_SENSOR is not supported before SDL 2.0.9")
+#endif
+
+#define SDL_INIT_SENSOR (0x00008000u)
+#endif
+*/
 import "C"
 
 import (
 	"runtime"
 )
 
+// These are the flags which may be passed to SDL_Init().
+// (https://wiki.libsdl.org/SDL_Init)
 const (
-	INIT_TIMER          = 0x00000001
-	INIT_AUDIO          = 0x00000010
-	INIT_VIDEO          = 0x00000020
-	INIT_JOYSTICK       = 0x00000200
-	INIT_HAPTIC         = 0x00001000
-	INIT_GAMECONTROLLER = 0x00002000
-	INIT_NOPARACHUTE    = 0x00100000
-	INIT_EVERYTHING     = INIT_TIMER | INIT_AUDIO | INIT_VIDEO | INIT_JOYSTICK |
-		INIT_HAPTIC | INIT_GAMECONTROLLER
+	INIT_TIMER          = C.SDL_INIT_TIMER          // timer subsystem
+	INIT_AUDIO          = C.SDL_INIT_AUDIO          // audio subsystem
+	INIT_VIDEO          = C.SDL_INIT_VIDEO          // video subsystem; automatically initializes the events subsystem
+	INIT_JOYSTICK       = C.SDL_INIT_JOYSTICK       // joystick subsystem; automatically initializes the events subsystem
+	INIT_HAPTIC         = C.SDL_INIT_HAPTIC         // haptic (force feedback) subsystem
+	INIT_GAMECONTROLLER = C.SDL_INIT_GAMECONTROLLER // controller subsystem; automatically initializes the joystick subsystem
+	INIT_EVENTS         = C.SDL_INIT_EVENTS         // events subsystem
+	INIT_NOPARACHUTE    = C.SDL_INIT_NOPARACHUTE    // compatibility; this flag is ignored
+	INIT_SENSOR         = C.SDL_INIT_SENSOR         // sensor subsystem
+	INIT_EVERYTHING     = C.SDL_INIT_EVERYTHING     // all of the above subsystems
 )
 
 const (
@@ -95,7 +108,8 @@ func Do(f func()) {
 	callInMain(f)
 }
 
-// Init (https://wiki.libsdl.org/SDL_Init)
+// Init initialize the SDL library. This must be called before using most other SDL functions.
+// (https://wiki.libsdl.org/SDL_Init)
 func Init(flags uint32) error {
 	if C.SDL_Init(C.Uint32(flags)) != 0 {
 		return GetError()
@@ -103,7 +117,8 @@ func Init(flags uint32) error {
 	return nil
 }
 
-// Quit (https://wiki.libsdl.org/SDL_Quit)
+// Quit cleans up all initialized subsystems. You should call it upon all exit conditions.
+// (https://wiki.libsdl.org/SDL_Quit)
 func Quit() {
 	C.SDL_Quit()
 
@@ -113,7 +128,8 @@ func Quit() {
 	}
 }
 
-// InitSubSystem (https://wiki.libsdl.org/SDL_InitSubSystem)
+// InitSubSystem initializes specific SDL subsystems.
+// (https://wiki.libsdl.org/SDL_InitSubSystem)
 func InitSubSystem(flags uint32) error {
 	if C.SDL_InitSubSystem(C.Uint32(flags)) != 0 {
 		return GetError()
@@ -121,17 +137,20 @@ func InitSubSystem(flags uint32) error {
 	return nil
 }
 
-// QuitSubSystem (https://wiki.libsdl.org/SDL_QuitSubSystem)
+// QuitSubSystem shuts down specific SDL subsystems.
+// (https://wiki.libsdl.org/SDL_QuitSubSystem)
 func QuitSubSystem(flags uint32) {
 	C.SDL_QuitSubSystem(C.Uint32(flags))
 }
 
-// WasInit (https://wiki.libsdl.org/SDL_WasInit)
+// WasInit returns a mask of the specified subsystems which have previously been initialized.
+// (https://wiki.libsdl.org/SDL_WasInit)
 func WasInit(flags uint32) uint32 {
 	return uint32(C.SDL_WasInit(C.Uint32(flags)))
 }
 
-// GetPlatform (https://wiki.libsdl.org/SDL_GetPlatform)
+// GetPlatform returns the name of the platform.
+// (https://wiki.libsdl.org/SDL_GetPlatform)
 func GetPlatform() string {
 	return string(C.GoString(C.SDL_GetPlatform()))
 }

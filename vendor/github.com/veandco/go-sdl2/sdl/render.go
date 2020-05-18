@@ -4,42 +4,218 @@ package sdl
 #include "sdl_wrapper.h"
 
 #if !(SDL_VERSION_ATLEAST(2,0,1))
+
+#if defined(WARN_OUTDATED)
 #pragma message("SDL_UpdateYUVTexture is not supported before SDL 2.0.1")
+#endif
+
 static inline int SDL_UpdateYUVTexture(SDL_Texture* texture, const SDL_Rect* rect, const Uint8* Yplane, int Ypitch, const Uint8* Uplane, int Upitch, const Uint8* Vplane, int Vpitch)
 {
 	return -1;
 }
 #endif
 
+#if !(SDL_VERSION_ATLEAST(2,0,5))
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderSetIntegerScale is not supported before SDL 2.0.5")
+#endif
+
+static inline int SDL_RenderSetIntegerScale(SDL_Renderer* renderer, SDL_bool enable)
+{
+	SDL_Unsupported();
+	return -1;
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderGetIntegerScale is not supported before SDL 2.0.5")
+#endif
+
+static inline SDL_bool SDL_RenderGetIntegerScale(SDL_Renderer* renderer)
+{
+	SDL_Unsupported();
+	return -1;
+}
+#endif
+
+#if !(SDL_VERSION_ATLEAST(2,0,8))
+
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderGetMetalLayer is not supported before SDL 2.0.8")
+#endif
+
+static inline void * SDL_RenderGetMetalLayer(SDL_Renderer *renderer)
+{
+	return NULL;
+}
+
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderGetMetalCommandEncoder is not supported before SDL 2.0.8")
+#endif
+
+static inline void * SDL_RenderGetMetalCommandEncoder(SDL_Renderer *renderer)
+{
+	return NULL;
+}
+
+#endif
+
+#if !(SDL_VERSION_ATLEAST(2,0,10))
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderDrawPointF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderDrawPointF(SDL_Renderer * renderer, float x, float y)
+{
+	return SDL_RenderDrawPoint(renderer, (int) x, (int) y);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderDrawPointsF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderDrawPointsF(SDL_Renderer * renderer, const SDL_FPoint * points, int count)
+{
+	return SDL_RenderDrawPoints(renderer, (const SDL_Point *) points, count);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderDrawLineF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderDrawLineF(SDL_Renderer * renderer, float x1, float y1, float x2, float y2)
+{
+	return SDL_RenderDrawLine(renderer, (int) x1, (int) y1, (int) x2, (int) y2);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderDrawLinesF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderDrawLinesF(SDL_Renderer * renderer, const SDL_FPoint * points, int count)
+{
+	return SDL_RenderDrawLines(renderer, (const SDL_Point *) points, count);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderDrawRectF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderDrawRectF(SDL_Renderer * renderer, const SDL_FRect * rect)
+{
+	return SDL_RenderDrawRect(renderer, (const SDL_Rect *) rect);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderDrawRectsF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderDrawRectsF(SDL_Renderer * renderer, const SDL_FRect *rects, int count)
+{
+	return SDL_RenderDrawRects(renderer, (const SDL_Rect *) rects, count);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderFillRectF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderFillRectF(SDL_Renderer * renderer, const SDL_FRect * rect)
+{
+	return SDL_RenderFillRect(renderer, (const SDL_Rect *) rect);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderFillRectsF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderFillRectsF(SDL_Renderer * renderer, const SDL_FRect * rects, int count)
+{
+	return SDL_RenderFillRects(renderer, (const SDL_Rect *) rects, count);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderCopyF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderCopyF(SDL_Renderer * renderer, SDL_Texture * texture, const SDL_Rect * srcrect, const SDL_FRect * dstrect)
+{
+	return SDL_RenderCopy(renderer, texture, srcrect, (const SDL_Rect *) dstrect);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderCopyExF is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderCopyExF(SDL_Renderer * renderer, SDL_Texture * texture, const SDL_Rect * srcrect, const SDL_FRect * dstrect, const double angle, const SDL_FPoint * center, const SDL_RendererFlip flip)
+{
+	return SDL_RenderCopyEx(renderer, texture, srcrect, (const SDL_Rect *) dstrect, angle, (const SDL_Point *) center, flip);
+}
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_RenderFlush is not supported before SDL 2.0.10")
+#endif
+
+static inline int SDL_RenderFlush(SDL_Renderer * renderer)
+{
+	return 0;
+}
+
+#endif
+
+// WORKAROUND: This prevents audio from seemingly going corrupt when drawing outside the screen bounding box?
+// It does that by allocating SDL_Rect in the C context instead of Go context.
+static inline int RenderCopy(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect *src, int dst_x, int dst_y, int dst_w, int dst_h)
+{
+	SDL_Rect dst = {dst_x, dst_y, dst_w, dst_h};
+	return SDL_RenderCopy(renderer, texture, src, &dst);
+}
 */
 import "C"
-import "reflect"
-import "unsafe"
-
-const (
-	RENDERER_SOFTWARE      = C.SDL_RENDERER_SOFTWARE
-	RENDERER_ACCELERATED   = C.SDL_RENDERER_ACCELERATED
-	RENDERER_PRESENTVSYNC  = C.SDL_RENDERER_PRESENTVSYNC
-	RENDERER_TARGETTEXTURE = C.SDL_RENDERER_TARGETTEXTURE
-
-	TEXTUREACCESS_STATIC    = C.SDL_TEXTUREACCESS_STATIC
-	TEXTUREACCESS_STREAMING = C.SDL_TEXTUREACCESS_STREAMING
-	TEXTUREACCESS_TARGET    = C.SDL_TEXTUREACCESS_TARGET
-
-	TEXTUREMODULATE_NONE  = C.SDL_TEXTUREMODULATE_NONE
-	TEXTUREMODULATE_COLOR = C.SDL_TEXTUREMODULATE_COLOR
-	TEXTUREMODULATE_ALPHA = C.SDL_TEXTUREMODULATE_ALPHA
+import (
+	"reflect"
+	"unsafe"
 )
 
+// An enumeration of flags used when creating a rendering context.
+// (https://wiki.libsdl.org/SDL_RendererFlags)
 const (
-	FLIP_NONE       RendererFlip = C.SDL_FLIP_NONE
-	FLIP_HORIZONTAL              = C.SDL_FLIP_HORIZONTAL
-	FLIP_VERTICAL                = C.SDL_FLIP_VERTICAL
+	RENDERER_SOFTWARE      = C.SDL_RENDERER_SOFTWARE      // the renderer is a software fallback
+	RENDERER_ACCELERATED   = C.SDL_RENDERER_ACCELERATED   // the renderer uses hardware acceleration
+	RENDERER_PRESENTVSYNC  = C.SDL_RENDERER_PRESENTVSYNC  // present is synchronized with the refresh rate
+	RENDERER_TARGETTEXTURE = C.SDL_RENDERER_TARGETTEXTURE // the renderer supports rendering to texture
 )
 
-// RendererInfo (https://wiki.libsdl.org/SDL_RendererInfo)
+// An enumeration of texture access patterns..
+// (https://wiki.libsdl.org/SDL_TextureAccess)
+const (
+	TEXTUREACCESS_STATIC    = C.SDL_TEXTUREACCESS_STATIC    // changes rarely, not lockable
+	TEXTUREACCESS_STREAMING = C.SDL_TEXTUREACCESS_STREAMING // changes frequently, lockable
+	TEXTUREACCESS_TARGET    = C.SDL_TEXTUREACCESS_TARGET    // can be used as a render target
+)
+
+// An enumeration of the texture channel modulation used in Renderer.Copy().
+// (https://wiki.libsdl.org/SDL_TextureModulate)
+const (
+	TEXTUREMODULATE_NONE  = C.SDL_TEXTUREMODULATE_NONE  // no modulation
+	TEXTUREMODULATE_COLOR = C.SDL_TEXTUREMODULATE_COLOR // srcC = srcC * color
+	TEXTUREMODULATE_ALPHA = C.SDL_TEXTUREMODULATE_ALPHA // srcA = srcA * alpha
+)
+
+// An enumeration of flags that can be used in the flip parameter for Renderer.CopyEx().
+// (https://wiki.libsdl.org/SDL_RendererFlip)
+const (
+	FLIP_NONE       RendererFlip = C.SDL_FLIP_NONE       // do not flip
+	FLIP_HORIZONTAL              = C.SDL_FLIP_HORIZONTAL // flip horizontally
+	FLIP_VERTICAL                = C.SDL_FLIP_VERTICAL   // flip vertically
+)
+
+// RendererInfo contains information on the capabilities of a render driver or the current render context.
+// (https://wiki.libsdl.org/SDL_RendererInfo)
 type RendererInfo struct {
-	Name string
+	Name string // the name of the renderer
 	RendererInfoData
 }
 
@@ -48,12 +224,14 @@ type cRendererInfo struct {
 	RendererInfoData
 }
 
+// RendererInfoData contains information on the capabilities of a render driver or the current render context.
+// (https://wiki.libsdl.org/SDL_RendererInfo)
 type RendererInfoData struct {
-	Flags             uint32
-	NumTextureFormats uint32
-	TextureFormats    [16]int32
-	MaxTextureWidth   int32
-	MaxTextureHeight  int32
+	Flags             uint32    // a mask of supported renderer flags
+	NumTextureFormats uint32    // the number of available texture formats
+	TextureFormats    [16]int32 // the available texture formats
+	MaxTextureWidth   int32     // the maximum texture width
+	MaxTextureHeight  int32     // the maximum texture height
 }
 
 func (info *RendererInfo) cptr() *C.SDL_RendererInfo {
@@ -64,7 +242,8 @@ func (info *cRendererInfo) cptr() *C.SDL_RendererInfo {
 	return (*C.SDL_RendererInfo)(unsafe.Pointer(info))
 }
 
-// RendererFlip (https://wiki.libsdl.org/SDL_RendererFlip)
+// RendererFlip is an enumeration of flags that can be used in the flip parameter for Renderer.CopyEx().
+// (https://wiki.libsdl.org/SDL_RendererFlip)
 type RendererFlip uint32
 type cRendererFlip C.SDL_RendererFlip
 
@@ -72,62 +251,76 @@ func (flip RendererFlip) c() C.SDL_RendererFlip {
 	return C.SDL_RendererFlip(flip)
 }
 
-// GetNumRenderDrivers (https://wiki.libsdl.org/SDL_GetNumRenderDrivers)
-func GetNumRenderDrivers() int {
-	return int(C.SDL_GetNumRenderDrivers())
+// GetNumRenderDrivers returns the number of 2D rendering drivers available for the current display.
+// (https://wiki.libsdl.org/SDL_GetNumRenderDrivers)
+func GetNumRenderDrivers() (int, error) {
+	i := int(C.SDL_GetNumRenderDrivers())
+	return i, errorFromInt(i)
 }
 
-// GetRenderDriverInfo (https://wiki.libsdl.org/SDL_GetRenderDriverInfo)
-func GetRenderDriverInfo(index int, info *RendererInfo) int {
+// GetRenderDriverInfo returns information about a specific 2D rendering driver for the current display.
+// (https://wiki.libsdl.org/SDL_GetRenderDriverInfo)
+func GetRenderDriverInfo(index int, info *RendererInfo) (int, error) {
 	var cinfo cRendererInfo
 	ret := int(C.SDL_GetRenderDriverInfo(C.int(index), cinfo.cptr()))
-
+	if ret < 0 {
+		return ret, GetError()
+	}
 	info.RendererInfoData = cinfo.RendererInfoData
 	// No need to free, it's done by DestroyRenderer
 	info.Name = C.GoString(cinfo.Name)
-
-	return ret
+	return ret, nil
 }
 
-// CreateWindowAndRenderer (https://wiki.libsdl.org/SDL_CreateWindowAndRenderer)
-func CreateWindowAndRenderer(w, h int, flags uint32) (*Window, *Renderer, error) {
+// CreateWindowAndRenderer returns a new window and default renderer.
+// (https://wiki.libsdl.org/SDL_CreateWindowAndRenderer)
+func CreateWindowAndRenderer(w, h int32, flags uint32) (*Window, *Renderer, error) {
 	var window *C.SDL_Window
 	var renderer *C.SDL_Renderer
-	ret := C.SDL_CreateWindowAndRenderer(C.int(w), C.int(h), C.Uint32(flags), &window, &renderer)
+	ret := C.SDL_CreateWindowAndRenderer(
+		C.int(w),
+		C.int(h),
+		C.Uint32(flags),
+		&window,
+		&renderer)
 	if ret == -1 {
 		return nil, nil, GetError()
 	}
 	return (*Window)(unsafe.Pointer(window)), (*Renderer)(unsafe.Pointer(renderer)), nil
 }
 
-// CreateRenderer (https://wiki.libsdl.org/SDL_CreateRenderer)
+// CreateRenderer returns a new 2D rendering context for a window.
+// (https://wiki.libsdl.org/SDL_CreateRenderer)
 func CreateRenderer(window *Window, index int, flags uint32) (*Renderer, error) {
-	_renderer := C.SDL_CreateRenderer(window.cptr(), C.int(index), C.Uint32(flags))
-	if _renderer == nil {
+	renderer := C.SDL_CreateRenderer(window.cptr(), C.int(index), C.Uint32(flags))
+	if renderer == nil {
 		return nil, GetError()
 	}
-	return (*Renderer)(unsafe.Pointer(_renderer)), nil
+	return (*Renderer)(unsafe.Pointer(renderer)), nil
 }
 
-// CreateSoftwareRenderer (https://wiki.libsdl.org/SDL_CreateSoftwareRenderer)
+// CreateSoftwareRenderer returns a new 2D software rendering context for a surface.
+// (https://wiki.libsdl.org/SDL_CreateSoftwareRenderer)
 func CreateSoftwareRenderer(surface *Surface) (*Renderer, error) {
-	_renderer := C.SDL_CreateSoftwareRenderer(surface.cptr())
-	if _renderer == nil {
+	renderer := C.SDL_CreateSoftwareRenderer(surface.cptr())
+	if renderer == nil {
 		return nil, GetError()
 	}
-	return (*Renderer)(unsafe.Pointer(_renderer)), nil
+	return (*Renderer)(unsafe.Pointer(renderer)), nil
 }
 
-// Window (https://wiki.libsdl.org/SDL_GetRenderer)
+// GetRenderer returns the renderer associated with a window.
+// (https://wiki.libsdl.org/SDL_GetRenderer)
 func (window *Window) GetRenderer() (*Renderer, error) {
-	_renderer := C.SDL_GetRenderer(window.cptr())
-	if _renderer == nil {
+	renderer := C.SDL_GetRenderer(window.cptr())
+	if renderer == nil {
 		return nil, GetError()
 	}
-	return (*Renderer)(unsafe.Pointer(_renderer)), nil
+	return (*Renderer)(unsafe.Pointer(renderer)), nil
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_GetRendererInfo)
+// GetInfo returns information about a rendering context.
+// (https://wiki.libsdl.org/SDL_GetRendererInfo)
 func (renderer *Renderer) GetInfo() (RendererInfo, error) {
 	var cinfo cRendererInfo
 	var info RendererInfo
@@ -135,146 +328,169 @@ func (renderer *Renderer) GetInfo() (RendererInfo, error) {
 	if ret < 0 {
 		return info, GetError()
 	}
-
 	info.RendererInfoData = cinfo.RendererInfoData
 	// No need to free, it's done by DestroyRenderer
 	info.Name = C.GoString(cinfo.Name)
-
 	return info, nil
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_GetRendererOutputSize)
-func (renderer *Renderer) GetOutputSize() (w, h int, err error) {
-	_w := (*C.int)(unsafe.Pointer(&w))
-	_h := (*C.int)(unsafe.Pointer(&h))
-	_ret := C.SDL_GetRendererOutputSize(renderer.cptr(), _w, _h)
-	if _ret < 0 {
-		err = GetError()
-	}
+// GetOutputSize returns the output size in pixels of a rendering context.
+// (https://wiki.libsdl.org/SDL_GetRendererOutputSize)
+func (renderer *Renderer) GetOutputSize() (w, h int32, err error) {
+	ret := C.SDL_GetRendererOutputSize(
+		renderer.cptr(),
+		(*C.int)(unsafe.Pointer(&w)),
+		(*C.int)(unsafe.Pointer(&h)))
+	err = errorFromInt(int(ret))
 	return
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_CreateTexture)
-func (renderer *Renderer) CreateTexture(format uint32, access int, w int, h int) (*Texture, error) {
-	_format := C.Uint32(format)
-	_access := C.int(access)
-	_w := C.int(w)
-	_h := C.int(h)
-	_texture := C.SDL_CreateTexture(renderer.cptr(), _format, _access, _w, _h)
-	if _texture == nil {
+// CreateTexture returns a new texture for a rendering context.
+// (https://wiki.libsdl.org/SDL_CreateTexture)
+func (renderer *Renderer) CreateTexture(format uint32, access int, w, h int32) (*Texture, error) {
+	texture := C.SDL_CreateTexture(
+		renderer.cptr(),
+		C.Uint32(format),
+		C.int(access),
+		C.int(w),
+		C.int(h))
+	if texture == nil {
 		return nil, GetError()
 	}
-	return (*Texture)(unsafe.Pointer(_texture)), nil
+	return (*Texture)(unsafe.Pointer(texture)), nil
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_CreateTextureFromSurface)
+// CreateTextureFromSurface returns a new texture from an existing surface.
+// (https://wiki.libsdl.org/SDL_CreateTextureFromSurface)
 func (renderer *Renderer) CreateTextureFromSurface(surface *Surface) (*Texture, error) {
-	_texture := C.SDL_CreateTextureFromSurface(renderer.cptr(), surface.cptr())
-	if _texture == nil {
+	texture := C.SDL_CreateTextureFromSurface(renderer.cptr(), surface.cptr())
+	if texture == nil {
 		return nil, GetError()
 	}
-	return (*Texture)(unsafe.Pointer(_texture)), nil
+	return (*Texture)(unsafe.Pointer(texture)), nil
 }
 
-// Texture (https://wiki.libsdl.org/SDL_QueryTexture)
-func (texture *Texture) Query() (uint32, int, int32, int32, error) {
-	var format C.Uint32
-	var access C.int
-	var width C.int
-	var height C.int
-	ret := C.SDL_QueryTexture(texture.cptr(), &format, &access, &width, &height)
-	if ret < 0 {
-		return 0, 0, 0, 0, GetError()
-	}
-	return uint32(format), int(access), int32(width), int32(height), nil
+// Query returns the attributes of a texture.
+// (https://wiki.libsdl.org/SDL_QueryTexture)
+func (texture *Texture) Query() (format uint32, access int, width int32, height int32, err error) {
+	var _format C.Uint32
+	var _access C.int
+	var _width C.int
+	var _height C.int
+
+	ret := int(C.SDL_QueryTexture(texture.cptr(), &_format, &_access, &_width, &_height))
+
+	format = uint32(_format)
+	access = int(_access)
+	width = int32(_width)
+	height = int32(_height)
+	err = errorFromInt(ret)
+
+	return
 }
 
-// Texture (https://wiki.libsdl.org/SDL_SetTextureColorMod)
+// SetColorMod sets an additional color value multiplied into render copy operations.
+// (https://wiki.libsdl.org/SDL_SetTextureColorMod)
 func (texture *Texture) SetColorMod(r uint8, g uint8, b uint8) error {
-	_r := C.Uint8(r)
-	_g := C.Uint8(g)
-	_b := C.Uint8(b)
-	_ret := C.SDL_SetTextureColorMod(texture.cptr(), _r, _g, _b)
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_SetTextureColorMod(
+			texture.cptr(),
+			C.Uint8(r),
+			C.Uint8(g),
+			C.Uint8(b))))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_SetTextureAlphaMod)
+// SetAlphaMod sets an additional alpha value multiplied into render copy operations.
+// (https://wiki.libsdl.org/SDL_SetTextureAlphaMod)
 func (texture *Texture) SetAlphaMod(alpha uint8) error {
-	_ret := C.SDL_SetTextureAlphaMod(texture.cptr(), C.Uint8(alpha))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_SetTextureAlphaMod(texture.cptr(), C.Uint8(alpha))))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_GetTextureAlphaMod)
+// GetAlphaMod returns the additional alpha value multiplied into render copy operations.
+// (https://wiki.libsdl.org/SDL_GetTextureAlphaMod)
 func (texture *Texture) GetAlphaMod() (alpha uint8, err error) {
-	_alpha := (*C.Uint8)(unsafe.Pointer(&alpha))
-	_ret := C.SDL_GetTextureAlphaMod(texture.cptr(), _alpha)
-	if _ret < 0 {
-		err = GetError()
-		return alpha, err
-	}
-	return alpha, nil
+	ret := C.SDL_GetTextureAlphaMod(texture.cptr(), (*C.Uint8)(unsafe.Pointer(&alpha)))
+	return alpha, errorFromInt(int(ret))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_SetTextureBlendMode)
+// SetBlendMode sets the blend mode for a texture, used by Renderer.Copy().
+// (https://wiki.libsdl.org/SDL_SetTextureBlendMode)
 func (texture *Texture) SetBlendMode(bm BlendMode) error {
-	_ret := C.SDL_SetTextureBlendMode(texture.cptr(), bm.c())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_SetTextureBlendMode(texture.cptr(), bm.c())))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_GetTextureBlendMode)
+// GetBlendMode returns the blend mode used for texture copy operations.
+// (https://wiki.libsdl.org/SDL_GetTextureBlendMode)
 func (texture *Texture) GetBlendMode() (bm BlendMode, err error) {
-	_ret := C.SDL_GetTextureBlendMode(texture.cptr(), bm.cptr())
-	if _ret < 0 {
-		err = GetError()
-		return bm, err
-	}
-	return bm, nil
+	ret := C.SDL_GetTextureBlendMode(texture.cptr(), bm.cptr())
+	return bm, errorFromInt(int(ret))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_UpdateTexture)
+// Update updates the given texture rectangle with new pixel data.
+// (https://wiki.libsdl.org/SDL_UpdateTexture)
 func (texture *Texture) Update(rect *Rect, pixels []byte, pitch int) error {
-	_pixels := unsafe.Pointer(&pixels[0])
-	_pitch := C.int(pitch)
-	_ret := C.SDL_UpdateTexture(texture.cptr(), rect.cptr(), _pixels, _pitch)
-	if _ret < 0 {
-		return GetError()
+	if pixels == nil {
+		return nil
 	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_UpdateTexture(
+			texture.cptr(),
+			rect.cptr(),
+			unsafe.Pointer(&pixels[0]),
+			C.int(pitch))))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_UpdateYUVTexture)
+// UpdateRGBA updates the given texture rectangle with new uint32 pixel data.
+// (https://wiki.libsdl.org/SDL_UpdateTexture)
+func (texture *Texture) UpdateRGBA(rect *Rect, pixels []uint32, pitch int) error {
+	if pixels == nil {
+		return nil
+	}
+	return errorFromInt(int(
+		C.SDL_UpdateTexture(
+			texture.cptr(),
+			rect.cptr(),
+			unsafe.Pointer(&pixels[0]),
+			C.int(4*pitch)))) // 4 bytes in one uint32
+}
+
+// UpdateYUV updates a rectangle within a planar YV12 or IYUV texture with new pixel data.
+// (https://wiki.libsdl.org/SDL_UpdateYUVTexture)
 func (texture *Texture) UpdateYUV(rect *Rect, yPlane []byte, yPitch int, uPlane []byte, uPitch int, vPlane []byte, vPitch int) error {
-	_yPlane := (*C.Uint8)(unsafe.Pointer(&yPlane[0]))
-	_yPitch := C.int(yPitch)
-	_uPlane := (*C.Uint8)(unsafe.Pointer(&uPlane[0]))
-	_uPitch := C.int(uPitch)
-	_vPlane := (*C.Uint8)(unsafe.Pointer(&vPlane[0]))
-	_vPitch := C.int(vPitch)
-	_ret := C.SDL_UpdateYUVTexture(texture.cptr(), rect.cptr(), _yPlane, _yPitch, _uPlane, _uPitch, _vPlane, _vPitch)
-	if _ret < 0 {
-		return GetError()
+	var yPlanePtr, uPlanePtr, vPlanePtr *byte
+	if yPlane != nil {
+		yPlanePtr = &yPlane[0]
 	}
-	return nil
+	if uPlane != nil {
+		uPlanePtr = &uPlane[0]
+	}
+	if vPlane != nil {
+		vPlanePtr = &vPlane[0]
+	}
+	return errorFromInt(int(
+		C.SDL_UpdateYUVTexture(
+			texture.cptr(),
+			rect.cptr(),
+			(*C.Uint8)(unsafe.Pointer(yPlanePtr)),
+			C.int(yPitch),
+			(*C.Uint8)(unsafe.Pointer(uPlanePtr)),
+			C.int(uPitch),
+			(*C.Uint8)(unsafe.Pointer(vPlanePtr)),
+			C.int(vPitch))))
 }
 
-// Texture (https://wiki.libsdl.org/SDL_LockTexture)
+// Lock locks a portion of the texture for write-only pixel access.
+// (https://wiki.libsdl.org/SDL_LockTexture)
 func (texture *Texture) Lock(rect *Rect) ([]byte, int, error) {
 	var _pitch C.int
 	var _pixels unsafe.Pointer
 	var b []byte
 	var length int
 
-	_ret := C.SDL_LockTexture(texture.cptr(), rect.cptr(), &_pixels, &_pitch)
-	if _ret < 0 {
+	ret := C.SDL_LockTexture(texture.cptr(), rect.cptr(), &_pixels, &_pitch)
+	if ret < 0 {
 		return b, int(_pitch), GetError()
 	}
 
@@ -285,7 +501,8 @@ func (texture *Texture) Lock(rect *Rect) ([]byte, int, error) {
 
 	pitch := int32(_pitch)
 	if rect != nil {
-		length = int((pitch / w) * rect.W * rect.H)
+		bytesPerPixel := pitch / w
+		length = int(bytesPerPixel * (w*rect.H - rect.X - (w - rect.X - rect.W)))
 	} else {
 		length = int(pitch * h)
 	}
@@ -297,293 +514,475 @@ func (texture *Texture) Lock(rect *Rect) ([]byte, int, error) {
 	return b, int(pitch), nil
 }
 
-// Texture (https://wiki.libsdl.org/SDL_UnlockTexture)
+// Unlock unlocks a texture, uploading the changes to video memory, if needed.
+// (https://wiki.libsdl.org/SDL_UnlockTexture)
 func (texture *Texture) Unlock() {
 	C.SDL_UnlockTexture(texture.cptr())
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderTargetSupported)
+// RenderTargetSupported reports whether a window supports the use of render targets.
+// (https://wiki.libsdl.org/SDL_RenderTargetSupported)
 func (renderer *Renderer) RenderTargetSupported() bool {
 	return C.SDL_RenderTargetSupported(renderer.cptr()) != 0
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_SetRenderTarget)
+// SetRenderTarget sets a texture as the current rendering target.
+// (https://wiki.libsdl.org/SDL_SetRenderTarget)
 func (renderer *Renderer) SetRenderTarget(texture *Texture) error {
-	_ret := C.SDL_SetRenderTarget(renderer.cptr(), texture.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_SetRenderTarget(renderer.cptr(), texture.cptr())))
+
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_GetRenderTarget)
+// GetRenderTarget returns the current render target.
+// (https://wiki.libsdl.org/SDL_GetRenderTarget)
 func (renderer *Renderer) GetRenderTarget() *Texture {
 	return (*Texture)(unsafe.Pointer(C.SDL_GetRenderTarget(renderer.cptr())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderSetLogicalSize)
-func (renderer *Renderer) SetLogicalSize(w int, h int) error {
-	_ret := C.SDL_RenderSetLogicalSize(renderer.cptr(), C.int(w), C.int(h))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+// SetLogicalSize sets a device independent resolution for rendering.
+// (https://wiki.libsdl.org/SDL_RenderSetLogicalSize)
+func (renderer *Renderer) SetLogicalSize(w, h int32) error {
+	return errorFromInt(int(
+		C.SDL_RenderSetLogicalSize(renderer.cptr(), C.int(w), C.int(h))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderGetLogicalSize)
-func (renderer *Renderer) GetLogicalSize() (w, h int) {
-	_w := (*C.int)(unsafe.Pointer(&w))
-	_h := (*C.int)(unsafe.Pointer(&h))
-	C.SDL_RenderGetLogicalSize(renderer.cptr(), _w, _h)
+// GetLogicalSize returns device independent resolution for rendering.
+// (https://wiki.libsdl.org/SDL_RenderGetLogicalSize)
+func (renderer *Renderer) GetLogicalSize() (w, h int32) {
+	C.SDL_RenderGetLogicalSize(
+		renderer.cptr(),
+		(*C.int)(unsafe.Pointer(&w)),
+		(*C.int)(unsafe.Pointer(&h)))
 	return
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderSetViewport)
+// SetViewport sets the drawing area for rendering on the current target.
+// (https://wiki.libsdl.org/SDL_RenderSetViewport)
 func (renderer *Renderer) SetViewport(rect *Rect) error {
-	_ret := C.SDL_RenderSetViewport(renderer.cptr(), rect.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderSetViewport(renderer.cptr(), rect.cptr())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderGetViewport)
-func (renderer *Renderer) GetViewport(rect *Rect) {
+// GetViewport returns the drawing area for the current target.
+// (https://wiki.libsdl.org/SDL_RenderGetViewport)
+func (renderer *Renderer) GetViewport() (rect Rect) {
 	C.SDL_RenderGetViewport(renderer.cptr(), rect.cptr())
-}
-
-// Renderer (https://wiki.libsdl.org/SDL_RenderSetClipRect)
-func (renderer *Renderer) SetClipRect(rect *Rect) error {
-	_ret := C.SDL_RenderSetClipRect(renderer.cptr(), rect.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
-}
-
-// Renderer (https://wiki.libsdl.org/SDL_RenderGetClipRect)
-func (renderer *Renderer) GetClipRect(rect *Rect) {
-	C.SDL_RenderGetClipRect(renderer.cptr(), rect.cptr())
-}
-
-// Renderer (https://wiki.libsdl.org/SDL_RenderSetScale)
-func (renderer *Renderer) SetScale(scaleX, scaleY float32) error {
-	_scaleX := C.float(scaleX)
-	_scaleY := C.float(scaleY)
-	_ret := C.SDL_RenderSetScale(renderer.cptr(), _scaleX, _scaleY)
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
-}
-
-// Renderer (https://wiki.libsdl.org/SDL_RenderGetScale)
-func (renderer *Renderer) GetScale() (scaleX, scaleY float32) {
-	_scaleX := (*C.float)(unsafe.Pointer(&scaleX))
-	_scaleY := (*C.float)(unsafe.Pointer(&scaleY))
-	C.SDL_RenderGetScale(renderer.cptr(), _scaleX, _scaleY)
 	return
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_SetRenderDrawColor)
-func (renderer *Renderer) SetDrawColor(r, g, b, a uint8) error {
-	_r := C.Uint8(r)
-	_g := C.Uint8(g)
-	_b := C.Uint8(b)
-	_a := C.Uint8(a)
-	_ret := C.SDL_SetRenderDrawColor(renderer.cptr(), _r, _g, _b, _a)
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+// SetClipRect sets the clip rectangle for rendering on the specified target.
+// (https://wiki.libsdl.org/SDL_RenderSetClipRect)
+func (renderer *Renderer) SetClipRect(rect *Rect) error {
+	return errorFromInt(int(
+		C.SDL_RenderSetClipRect(renderer.cptr(), rect.cptr())))
 }
 
-// Custom variant of SetDrawColor
+// GetClipRect returns the clip rectangle for the current target.
+// (https://wiki.libsdl.org/SDL_RenderGetClipRect)
+func (renderer *Renderer) GetClipRect() (rect Rect) {
+	C.SDL_RenderGetClipRect(renderer.cptr(), rect.cptr())
+	return
+}
+
+// SetScale sets the drawing scale for rendering on the current target.
+// (https://wiki.libsdl.org/SDL_RenderSetScale)
+func (renderer *Renderer) SetScale(scaleX, scaleY float32) error {
+	return errorFromInt(int(
+		C.SDL_RenderSetScale(
+			renderer.cptr(),
+			C.float(scaleX),
+			C.float(scaleY))))
+}
+
+// GetScale returns the drawing scale for the current target.
+// (https://wiki.libsdl.org/SDL_RenderGetScale)
+func (renderer *Renderer) GetScale() (scaleX, scaleY float32) {
+	C.SDL_RenderGetScale(
+		renderer.cptr(),
+		(*C.float)(unsafe.Pointer(&scaleX)),
+		(*C.float)(unsafe.Pointer(&scaleY)))
+	return
+}
+
+// SetIntegerScale sets whether to force integer scales for
+// resolution-independent rendering.
+//
+// This function restricts the logical viewport to integer values - that is,
+// when a resolution is between two multiples of a logical size, the viewport
+// size is rounded down to the lower multiple.
+//
+// (https://wiki.libsdl.org/SDL_RenderSetIntegerScale)
+func (renderer *Renderer) SetIntegerScale(v bool) error {
+	var cv C.SDL_bool = C.SDL_FALSE
+	if v {
+		cv = C.SDL_TRUE
+	}
+
+	return errorFromInt(int(C.SDL_RenderSetIntegerScale(renderer.cptr(), cv)))
+}
+
+// GetIntegerScale reports whether integer scales are forced for
+// resolution-independent rendering.
+//
+// (https://wiki.libsdl.org/SDL_RenderGetIntegerScale)
+func (renderer *Renderer) GetIntegerScale() (bool, error) {
+	ClearError()
+	if C.SDL_RenderGetIntegerScale(renderer.cptr()) == C.SDL_TRUE {
+		return true, nil
+	}
+	return false, GetError()
+}
+
+// SetDrawColor sets the color used for drawing operations (Rect, Line and Clear).
+// (https://wiki.libsdl.org/SDL_SetRenderDrawColor)
+func (renderer *Renderer) SetDrawColor(r, g, b, a uint8) error {
+	return errorFromInt(int(
+		C.SDL_SetRenderDrawColor(
+			renderer.cptr(),
+			C.Uint8(r),
+			C.Uint8(g),
+			C.Uint8(b),
+			C.Uint8(a))))
+}
+
+// SetDrawColorArray is a custom variant of SetDrawColor.
 func (renderer *Renderer) SetDrawColorArray(bs ...uint8) error {
 	_bs := []C.Uint8{0, 0, 0, 255}
 	for i := 0; i < len(_bs) && i < len(bs); i++ {
 		_bs[i] = C.Uint8(bs[i])
 	}
-	_ret := C.SDL_SetRenderDrawColor(renderer.cptr(), _bs[0], _bs[1], _bs[2], _bs[3])
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_SetRenderDrawColor(
+			renderer.cptr(),
+			_bs[0],
+			_bs[1],
+			_bs[2],
+			_bs[3])))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_GetRenderDrawColor)
+// GetDrawColor returns the color used for drawing operations (Rect, Line and Clear).
+// (https://wiki.libsdl.org/SDL_GetRenderDrawColor)
 func (renderer *Renderer) GetDrawColor() (r, g, b, a uint8, err error) {
-	_r := (*C.Uint8)(unsafe.Pointer(&r))
-	_g := (*C.Uint8)(unsafe.Pointer(&g))
-	_b := (*C.Uint8)(unsafe.Pointer(&b))
-	_a := (*C.Uint8)(unsafe.Pointer(&a))
-	_ret := C.SDL_GetRenderDrawColor(renderer.cptr(), _r, _g, _b, _a)
-	if _ret < 0 {
-		err = GetError()
-		return r, g, b, a, err
-	}
-	return r, g, b, a, nil
+	ret := C.SDL_GetRenderDrawColor(
+		renderer.cptr(),
+		(*C.Uint8)(unsafe.Pointer(&r)),
+		(*C.Uint8)(unsafe.Pointer(&g)),
+		(*C.Uint8)(unsafe.Pointer(&b)),
+		(*C.Uint8)(unsafe.Pointer(&a)))
+	return r, g, b, a, errorFromInt(int(ret))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_SetRenderDrawBlendMode)
+// SetDrawBlendMode sets the blend mode used for drawing operations (Fill and Line).
+// (https://wiki.libsdl.org/SDL_SetRenderDrawBlendMode)
 func (renderer *Renderer) SetDrawBlendMode(bm BlendMode) error {
-	_ret := C.SDL_SetRenderDrawBlendMode(renderer.cptr(), bm.c())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_SetRenderDrawBlendMode(renderer.cptr(), bm.c())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_GetRenderDrawBlendMode)
+// GetDrawBlendMode returns the blend mode used for drawing operations.
+// (https://wiki.libsdl.org/SDL_GetRenderDrawBlendMode)
 func (renderer *Renderer) GetDrawBlendMode(bm *BlendMode) error {
-	_ret := C.SDL_GetRenderDrawBlendMode(renderer.cptr(), bm.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_GetRenderDrawBlendMode(renderer.cptr(), bm.cptr())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderClear)
+// Clear clears the current rendering target with the drawing color.
+// (https://wiki.libsdl.org/SDL_RenderClear)
 func (renderer *Renderer) Clear() error {
-	_ret := C.SDL_RenderClear(renderer.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderClear(renderer.cptr())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderDrawPoint)
-func (renderer *Renderer) DrawPoint(x, y int) error {
-	_ret := C.SDL_RenderDrawPoint(renderer.cptr(), C.int(x), C.int(y))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+// DrawPoint draws a point on the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderDrawPoint)
+func (renderer *Renderer) DrawPoint(x, y int32) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawPoint(renderer.cptr(), C.int(x), C.int(y))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderDrawPoints)
+// DrawPoints draws multiple points on the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderDrawPoints)
 func (renderer *Renderer) DrawPoints(points []Point) error {
-	_ret := C.SDL_RenderDrawPoints(renderer.cptr(), points[0].cptr(), C.int(len(points)))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderDrawPoints(
+			renderer.cptr(),
+			points[0].cptr(),
+			C.int(len(points)))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderDrawLine)
-func (renderer *Renderer) DrawLine(x1, y1, x2, y2 int) error {
-	_x1 := C.int(x1)
-	_y1 := C.int(y1)
-	_x2 := C.int(x2)
-	_y2 := C.int(y2)
-	_ret := C.SDL_RenderDrawLine(renderer.cptr(), _x1, _y1, _x2, _y2)
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+// DrawLine draws a line on the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderDrawLine)
+func (renderer *Renderer) DrawLine(x1, y1, x2, y2 int32) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawLine(
+			renderer.cptr(),
+			C.int(x1),
+			C.int(y1),
+			C.int(x2),
+			C.int(y2))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderDrawLines)
+// DrawLines draws a series of connected lines on the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderDrawLines)
 func (renderer *Renderer) DrawLines(points []Point) error {
-	_ret := C.SDL_RenderDrawLines(renderer.cptr(), points[0].cptr(), C.int(len(points)))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderDrawLines(
+			renderer.cptr(),
+			points[0].cptr(),
+			C.int(len(points)))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderDrawRect)
+// DrawRect draws a rectangle on the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderDrawRect)
 func (renderer *Renderer) DrawRect(rect *Rect) error {
-	_ret := C.SDL_RenderDrawRect(renderer.cptr(), rect.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderDrawRect(renderer.cptr(), rect.cptr())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderDrawRects)
+// DrawRects draws some number of rectangles on the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderDrawRects)
 func (renderer *Renderer) DrawRects(rects []Rect) error {
-	_ret := C.SDL_RenderDrawRects(renderer.cptr(), rects[0].cptr(), C.int(len(rects)))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderDrawRects(
+			renderer.cptr(),
+			rects[0].cptr(),
+			C.int(len(rects)))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderFillRect)
+// FillRect fills a rectangle on the current rendering target with the drawing color.
+// (https://wiki.libsdl.org/SDL_RenderFillRect)
 func (renderer *Renderer) FillRect(rect *Rect) error {
-	_ret := C.SDL_RenderFillRect(renderer.cptr(), rect.cptr())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderFillRect(renderer.cptr(), rect.cptr())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderFillRects)
+// FillRects fills some number of rectangles on the current rendering target with the drawing color.
+// (https://wiki.libsdl.org/SDL_RenderFillRects)
 func (renderer *Renderer) FillRects(rects []Rect) error {
-	_ret := C.SDL_RenderFillRects(renderer.cptr(), rects[0].cptr(), C.int(len(rects)))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderFillRects(
+			renderer.cptr(),
+			rects[0].cptr(),
+			C.int(len(rects)))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderCopy)
+// Copy copies a portion of the texture to the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderCopy)
 func (renderer *Renderer) Copy(texture *Texture, src, dst *Rect) error {
-	_ret := C.SDL_RenderCopy(renderer.cptr(), texture.cptr(), src.cptr(), dst.cptr())
-	if _ret < 0 {
-		return GetError()
+	if dst == nil {
+		return errorFromInt(int(
+			C.SDL_RenderCopy(
+				renderer.cptr(),
+				texture.cptr(),
+				src.cptr(),
+				dst.cptr())))
 	}
-	return nil
+	return errorFromInt(int(
+		C.RenderCopy(
+			renderer.cptr(),
+			texture.cptr(),
+			src.cptr(),
+			C.int(dst.X), C.int(dst.Y), C.int(dst.W), C.int(dst.H))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderCopyEx)
+// CopyEx copies a portion of the texture to the current rendering target, optionally rotating it by angle around the given center and also flipping it top-bottom and/or left-right.
+// (https://wiki.libsdl.org/SDL_RenderCopyEx)
 func (renderer *Renderer) CopyEx(texture *Texture, src, dst *Rect, angle float64, center *Point, flip RendererFlip) error {
-	_ret := C.SDL_RenderCopyEx(renderer.cptr(), texture.cptr(), src.cptr(), dst.cptr(), C.double(angle), center.cptr(), flip.c())
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderCopyEx(
+			renderer.cptr(),
+			texture.cptr(),
+			src.cptr(),
+			dst.cptr(),
+			C.double(angle),
+			center.cptr(),
+			flip.c())))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderReadPixels)
+// DrawPointF draws a point on the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderDrawPointF)
+func (renderer *Renderer) DrawPointF(x, y float32) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawPointF(renderer.cptr(), C.float(x), C.float(y))))
+}
+
+// DrawPointsF draws multiple points on the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderDrawPointsF)
+func (renderer *Renderer) DrawPointsF(points []FPoint) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawPointsF(
+			renderer.cptr(),
+			points[0].cptr(),
+			C.int(len(points)))))
+}
+
+// DrawLineF draws a line on the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderDrawLineF)
+func (renderer *Renderer) DrawLineF(x1, y1, x2, y2 float32) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawLineF(
+			renderer.cptr(),
+			C.float(x1),
+			C.float(y1),
+			C.float(x2),
+			C.float(y2))))
+}
+
+// DrawLinesF draws a series of connected lines on the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderDrawLinesF)
+func (renderer *Renderer) DrawLinesF(points []FPoint) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawLinesF(
+			renderer.cptr(),
+			points[0].cptr(),
+			C.int(len(points)))))
+}
+
+// DrawRectF draws a rectangle on the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderDrawRectF)
+func (renderer *Renderer) DrawRectF(rect *FRect) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawRectF(renderer.cptr(), rect.cptr())))
+}
+
+// DrawRectsF draws some number of rectangles on the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderDrawRectsF)
+func (renderer *Renderer) DrawRectsF(rects []FRect) error {
+	return errorFromInt(int(
+		C.SDL_RenderDrawRectsF(
+			renderer.cptr(),
+			rects[0].cptr(),
+			C.int(len(rects)))))
+}
+
+// FillRectF fills a rectangle on the current rendering target with the drawing color.
+// TODO: (https://wiki.libsdl.org/SDL_RenderFillRectF)
+func (renderer *Renderer) FillRectF(rect *FRect) error {
+	return errorFromInt(int(
+		C.SDL_RenderFillRectF(renderer.cptr(), rect.cptr())))
+}
+
+// FillRectsF fills some number of rectangles on the current rendering target with the drawing color.
+// TODO: (https://wiki.libsdl.org/SDL_RenderFillRectsF)
+func (renderer *Renderer) FillRectsF(rects []FRect) error {
+	return errorFromInt(int(
+		C.SDL_RenderFillRectsF(
+			renderer.cptr(),
+			rects[0].cptr(),
+			C.int(len(rects)))))
+}
+
+// CopyF copies a portion of the texture to the current rendering target.
+// TODO: (https://wiki.libsdl.org/SDL_RenderCopyF)
+func (renderer *Renderer) CopyF(texture *Texture, src *Rect, dst *FRect) error {
+	return errorFromInt(int(
+		C.SDL_RenderCopyF(
+			renderer.cptr(),
+			texture.cptr(),
+			src.cptr(),
+			dst.cptr())))
+}
+
+// CopyExF copies a portion of the texture to the current rendering target, optionally rotating it by angle around the given center and also flipping it top-bottom and/or left-right.
+// TODO: (https://wiki.libsdl.org/SDL_RenderCopyExF)
+func (renderer *Renderer) CopyExF(texture *Texture, src *Rect, dst *FRect, angle float64, center *FPoint, flip RendererFlip) error {
+	return errorFromInt(int(
+		C.SDL_RenderCopyExF(
+			renderer.cptr(),
+			texture.cptr(),
+			src.cptr(),
+			dst.cptr(),
+			C.double(angle),
+			center.cptr(),
+			flip.c())))
+}
+
+// ReadPixels reads pixels from the current rendering target.
+// (https://wiki.libsdl.org/SDL_RenderReadPixels)
 func (renderer *Renderer) ReadPixels(rect *Rect, format uint32, pixels unsafe.Pointer, pitch int) error {
-	_ret := C.SDL_RenderReadPixels(renderer.cptr(), rect.cptr(), C.Uint32(format), pixels, C.int(pitch))
-	if _ret < 0 {
-		return GetError()
-	}
-	return nil
+	return errorFromInt(int(
+		C.SDL_RenderReadPixels(
+			renderer.cptr(),
+			rect.cptr(),
+			C.Uint32(format),
+			pixels,
+			C.int(pitch))))
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_RenderPresent)
+// Present updates the screen with any rendering performed since the previous call.
+// (https://wiki.libsdl.org/SDL_RenderPresent)
 func (renderer *Renderer) Present() {
 	C.SDL_RenderPresent(renderer.cptr())
 }
 
-// Texture (https://wiki.libsdl.org/SDL_DestroyTexture)
-func (texture *Texture) Destroy() {
+// Destroy destroys the specified texture.
+// (https://wiki.libsdl.org/SDL_DestroyTexture)
+func (texture *Texture) Destroy() error {
+	lastErr := GetError()
+	ClearError()
 	C.SDL_DestroyTexture(texture.cptr())
+	err := GetError()
+	if err != nil {
+		return err
+	}
+	SetError(lastErr)
+	return nil
 }
 
-// Renderer (https://wiki.libsdl.org/SDL_DestroyRenderer)
-func (renderer *Renderer) Destroy() {
+// Destroy destroys the rendering context for a window and free associated textures.
+// (https://wiki.libsdl.org/SDL_DestroyRenderer)
+func (renderer *Renderer) Destroy() error {
+	lastErr := GetError()
+	ClearError()
 	C.SDL_DestroyRenderer(renderer.cptr())
-}
-
-func (texture *Texture) GL_BindTexture(texw, texh *float32) error {
-	_texw := (*C.float)(unsafe.Pointer(texw))
-	_texh := (*C.float)(unsafe.Pointer(texh))
-	_ret := C.SDL_GL_BindTexture(texture.cptr(), _texw, _texh)
-	if _ret < 0 {
-		return GetError()
+	err := GetError()
+	if err != nil {
+		return err
 	}
+	SetError(lastErr)
 	return nil
 }
 
-func (texture *Texture) GL_UnbindTexture() error {
-	_ret := C.SDL_GL_UnbindTexture(texture.cptr())
-	if _ret < 0 {
-		return GetError()
+// Flush forces the rendering context to flush any pending commands to the underlying rendering API.
+// TODO: (https://wiki.libsdl.org/SDL_RenderFlush)
+func (renderer *Renderer) Flush() error {
+	return errorFromInt(int(C.SDL_RenderFlush(renderer.cptr())))
+}
+
+// GLBind binds an OpenGL/ES/ES2 texture to the current context for use with OpenGL instructions when rendering OpenGL primitives directly.
+// (https://wiki.libsdl.org/SDL_GL_BindTexture)
+func (texture *Texture) GLBind(texw, texh *float32) error {
+	return errorFromInt(int(
+		C.SDL_GL_BindTexture(
+			texture.cptr(),
+			(*C.float)(unsafe.Pointer(texw)),
+			(*C.float)(unsafe.Pointer(texh)))))
+}
+
+// GLUnbind unbinds an OpenGL/ES/ES2 texture from the current context.
+// (https://wiki.libsdl.org/SDL_GL_UnbindTexture)
+func (texture *Texture) GLUnbind() error {
+	return errorFromInt(int(
+		C.SDL_GL_UnbindTexture(texture.cptr())))
+}
+
+// GetMetalLayer gets the CAMetalLayer associated with the given Metal renderer
+// (https://wiki.libsdl.org/SDL_RenderGetMetalLayer)
+func (renderer *Renderer) GetMetalLayer() (layer unsafe.Pointer, err error) {
+	layer = C.SDL_RenderGetMetalLayer(renderer.cptr())
+	if layer == nil {
+		err = GetError()
 	}
-	return nil
+	return
+}
+
+// GetMetalCommandEncoder gets the Metal command encoder for the current frame
+// (https://wiki.libsdl.org/SDL_RenderGetMetalCommandEncoder)
+func (renderer *Renderer) GetMetalCommandEncoder() (encoder unsafe.Pointer, err error) {
+	encoder = C.SDL_RenderGetMetalCommandEncoder(renderer.cptr())
+	if encoder == nil {
+		err = GetError()
+	}
+	return
 }

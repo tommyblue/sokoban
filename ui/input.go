@@ -14,12 +14,11 @@ type IGameEngine interface {
 func (gui *GUI) ManageInput(ge IGameEngine) {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
-		case *sdl.KeyUpEvent:
+		case *sdl.KeyboardEvent:
 			switch t.Keysym.Scancode {
 			case sdl.SCANCODE_ESCAPE:
 				println("Quit")
 				ge.SetRunningState(false)
-				break
 			case sdl.SCANCODE_LEFT:
 				ge.MoveLeft()
 			case sdl.SCANCODE_RIGHT:
@@ -32,7 +31,6 @@ func (gui *GUI) ManageInput(ge IGameEngine) {
 		case *sdl.QuitEvent:
 			println("Quit")
 			ge.SetRunningState(false)
-			break
 		}
 	}
 }

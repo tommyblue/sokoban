@@ -39,7 +39,7 @@ func (gui *GUI) syncFPS() {
 
 func (gui *GUI) drawFPS(text string) error {
 	fontColor := sdl.Color{R: 0, G: 0, B: 0, A: 0}
-	textSurface, err := font.RenderUTF8_Blended(fmt.Sprintf("%s FPS", text), fontColor)
+	textSurface, err := font.RenderUTF8Blended(fmt.Sprintf("%s FPS", text), fontColor)
 	utils.Check(err)
 	defer textSurface.Free()
 

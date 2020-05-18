@@ -26,34 +26,52 @@ static int RWclose(SDL_RWops *ctx)
 {
 	return ctx->close(ctx);
 }
+
+#if !(SDL_VERSION_ATLEAST(2,0,6))
+
+#if defined(WARN_OUTDATED)
+#pragma message("SDL_LoadFile_RW is not supported before SDL 2.0.6")
+#endif
+
+static void * SDL_LoadFile_RW(SDL_RWops * src, size_t *datasize, int freesrc)
+{
+	return 0;
+}
+#endif
 */
 import "C"
-import "unsafe"
-
-/* RWops Types */
-const (
-	RWOPS_UNKNOWN   = 0
-	RWOPS_WINFILE   = 1
-	RWOPS_STDFILE   = 2
-	RWOPS_JNIFILE   = 3
-	RWOPS_MEMORY    = 4
-	RWOPS_MEMORY_RO = 5
+import (
+	"reflect"
+	"unsafe"
 )
 
+// RWops types
 const (
-	RW_SEEK_SET = C.RW_SEEK_SET
-	RW_SEEK_CUR = C.RW_SEEK_CUR
-	RW_SEEK_END = C.RW_SEEK_END
+	RWOPS_UNKNOWN   = 0 // unknown stream type
+	RWOPS_WINFILE   = 1 // win32 file
+	RWOPS_STDFILE   = 2 // stdio file
+	RWOPS_JNIFILE   = 3 // android asset
+	RWOPS_MEMORY    = 4 // memory stream
+	RWOPS_MEMORY_RO = 5 // read-only memory stream
 )
 
-// RWops (https://wiki.libsdl.org/SDL_RWops)
+// RWops seek from
+const (
+	RW_SEEK_SET = C.RW_SEEK_SET // seek from the beginning of data
+	RW_SEEK_CUR = C.RW_SEEK_CUR // seek relative to current read point
+	RW_SEEK_END = C.RW_SEEK_END // seek relative to the end of data
+)
+
+// RWops provides an abstract interface to stream I/O. Applications can generally ignore the specifics of this structure's internals and treat them as opaque pointers. The details are important to lower-level code that might need to implement one of these, however.
+// (https://wiki.libsdl.org/SDL_RWops)
 type RWops C.SDL_RWops
 
-func (rw *RWops) cptr() *C.SDL_RWops {
-	return (*C.SDL_RWops)(rw)
+func (rwops *RWops) cptr() *C.SDL_RWops {
+	return (*C.SDL_RWops)(rwops)
 }
 
-// RWFromFile (https://wiki.libsdl.org/SDL_RWFromFile)
+// RWFromFile creates a new RWops structure for reading from and/or writing to a named file.
+// (https://wiki.libsdl.org/SDL_RWFromFile)
 func RWFromFile(file, mode string) *RWops {
 	_file := C.CString(file)
 	_mode := C.CString(mode)
@@ -62,181 +80,280 @@ func RWFromFile(file, mode string) *RWops {
 	return (*RWops)(unsafe.Pointer(C.SDL_RWFromFile(_file, _mode)))
 }
 
-// RWFromMem (https://wiki.libsdl.org/SDL_RWFromMem)
-func RWFromMem(mem unsafe.Pointer, size int) *RWops {
+// RWFromMem prepares a read-write memory buffer for use with RWops.
+// (https://wiki.libsdl.org/SDL_RWFromMem)
+func RWFromMem(mem []byte) (*RWops, error) {
 	if mem == nil {
-		return nil
+		return nil, ErrInvalidParameters
 	}
-	return (*RWops)(unsafe.Pointer(C.SDL_RWFromMem(mem, C.int(size))))
+
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&mem))
+	_mem := unsafe.Pointer(header.Data)
+
+	rwops := (*RWops)(unsafe.Pointer(C.SDL_RWFromMem(_mem, C.int(len(mem)))))
+	if rwops == nil {
+		return nil, GetError()
+	}
+	return rwops, nil
 }
 
-// AllocRW (https://wiki.libsdl.org/SDL_AllocRW)
+// AllocRW allocates an empty, unpopulated RWops structure.
+// (https://wiki.libsdl.org/SDL_AllocRW)
 func AllocRW() *RWops {
 	return (*RWops)(unsafe.Pointer(C.SDL_AllocRW()))
 }
 
-// FreeRW (https://wiki.libsdl.org/SDL_FreeRW)
-func (area *RWops) FreeRW() {
-	if area == nil {
-		return
+// Free frees the RWops structure allocated by AllocRW().
+// (https://wiki.libsdl.org/SDL_FreeRW)
+func (rwops *RWops) Free() error {
+	if rwops == nil {
+		return ErrInvalidParameters
 	}
-	C.SDL_FreeRW(area.cptr())
+
+	C.SDL_FreeRW(rwops.cptr())
+	return nil
 }
 
-// RWsize (https://wiki.libsdl.org/SDL_RWsize)
-func (ctx *RWops) RWsize() int64 {
-	return int64(C.RWsize(ctx.cptr()))
+// Size returns the size of the data stream in the RWops.
+// (https://wiki.libsdl.org/SDL_RWsize)
+func (rwops *RWops) Size() (int64, error) {
+	n := int64(C.RWsize(rwops.cptr()))
+	if n < 0 {
+		return n, GetError()
+	}
+	return n, nil
 }
 
-// RWseek (https://wiki.libsdl.org/SDL_RWseek)
-func (ctx *RWops) RWseek(offset int64, whence int) int64 {
-	if ctx == nil {
-		return -1
+// Seek seeks within the RWops data stream.
+// (https://wiki.libsdl.org/SDL_RWseek)
+func (rwops *RWops) Seek(offset int64, whence int) (int64, error) {
+	if rwops == nil {
+		return -1, ErrInvalidParameters
 	}
-	return int64(C.RWseek(ctx.cptr(), C.Sint64(offset), C.int(whence)))
+
+	ret := int64(C.RWseek(rwops.cptr(), C.Sint64(offset), C.int(whence)))
+	if ret < 0 {
+		return ret, GetError()
+	}
+	return ret, nil
 }
 
-// RWread (https://wiki.libsdl.org/SDL_RWread)
-func (ctx *RWops) RWread(ptr unsafe.Pointer, size, maxnum uint) uint {
-	if ctx == nil {
-		return 0
-	}
-	return uint(C.RWread(ctx.cptr(), ptr, C.size_t(size), C.size_t(maxnum)))
+// Read reads from a data source.
+// (https://wiki.libsdl.org/SDL_RWread)
+func (rwops *RWops) Read(buf []byte) (n int, err error) {
+	return rwops.Read2(buf, 1, uint(len(buf)))
 }
 
-// RWtell (https://wiki.libsdl.org/SDL_RWtell)
-func (ctx *RWops) RWtell() int64 {
-	if ctx == nil {
-		return 0
+// Read2 reads from a data source (native).
+// (https://wiki.libsdl.org/SDL_RWread)
+func (rwops *RWops) Read2(buf []byte, size, maxnum uint) (n int, err error) {
+	if rwops == nil || buf == nil {
+		return 0, ErrInvalidParameters
 	}
-	return int64(C.RWseek(ctx.cptr(), 0, RW_SEEK_CUR))
+
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	_data := unsafe.Pointer(header.Data)
+
+	n = int(C.RWread(rwops.cptr(), _data, C.size_t(size), C.size_t(maxnum)))
+	if n == 0 {
+		err = GetError()
+	}
+	return
 }
 
-// RWwrite (https://wiki.libsdl.org/SDL_RWwrite)
-func (ctx *RWops) RWwrite(ptr unsafe.Pointer, size, num uint) uint {
-	if ctx == nil {
-		return 0
+// Tell returns the current read/write offset in the RWops data stream.
+// (https://wiki.libsdl.org/SDL_RWtell)
+func (rwops *RWops) Tell() (int64, error) {
+	if rwops == nil {
+		return 0, ErrInvalidParameters
 	}
-	if ptr == nil {
-		return 0
+
+	ret := int64(C.RWseek(rwops.cptr(), 0, C.int(RW_SEEK_CUR)))
+	if ret < 0 {
+		return ret, GetError()
 	}
-	return uint(C.RWwrite(ctx.cptr(), ptr, C.size_t(size), C.size_t(size)))
+	return ret, nil
 }
 
-// RWclose (https://wiki.libsdl.org/SDL_RWclose)
-func (ctx *RWops) RWclose() error {
-	if ctx != nil && C.RWclose(ctx.cptr()) != 0 {
+// Write writes to the RWops data stream.
+// (https://wiki.libsdl.org/SDL_RWwrite)
+func (rwops *RWops) Write(buf []byte) (n int, err error) {
+	return rwops.Write2(buf, 1, uint(len(buf)))
+}
+
+// Write2 writes to the RWops data stream (native).
+// (https://wiki.libsdl.org/SDL_RWwrite)
+func (rwops *RWops) Write2(buf []byte, size, num uint) (n int, err error) {
+	if rwops == nil || buf == nil {
+		return 0, ErrInvalidParameters
+	}
+
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	_data := unsafe.Pointer(header.Data)
+
+	n = int(C.RWwrite(rwops.cptr(), _data, C.size_t(size), C.size_t(num)))
+	if n < int(num) {
+		err = GetError()
+	}
+	return
+}
+
+// Close closes and frees the allocated RWops structure.
+// (https://wiki.libsdl.org/SDL_RWclose)
+func (rwops *RWops) Close() error {
+	if rwops != nil && C.RWclose(rwops.cptr()) != 0 {
 		return GetError()
 	}
 	return nil
 }
 
-func (src *RWops) ReadU8() uint8 {
-	if src == nil {
+// ReadU8 reads a byte from the RWops.
+// (https://wiki.libsdl.org/SDL_ReadU8)
+func (rwops *RWops) ReadU8() uint8 {
+	if rwops == nil {
 		return 0
 	}
-	return uint8(C.SDL_ReadU8(src.cptr()))
+	return uint8(C.SDL_ReadU8(rwops.cptr()))
 }
 
-// ReadLE16 (https://wiki.libsdl.org/SDL_ReadLE16)
-func (src *RWops) ReadLE16() uint16 {
-	if src == nil {
+// ReadLE16 reads 16 bits of little-endian data from the RWops and returns in native format.
+// (https://wiki.libsdl.org/SDL_ReadLE16)
+func (rwops *RWops) ReadLE16() uint16 {
+	if rwops == nil {
 		return 0
 	}
-	return uint16(C.SDL_ReadLE16(src.cptr()))
+	return uint16(C.SDL_ReadLE16(rwops.cptr()))
 }
 
-// ReadBE16 (https://wiki.libsdl.org/SDL_ReadBE16)
-func (src *RWops) ReadBE16() uint16 {
-	if src == nil {
+// ReadBE16 read 16 bits of big-endian data from the RWops and returns in native format.
+// (https://wiki.libsdl.org/SDL_ReadBE16)
+func (rwops *RWops) ReadBE16() uint16 {
+	if rwops == nil {
 		return 0
 	}
-	return uint16(C.SDL_ReadBE16(src.cptr()))
+	return uint16(C.SDL_ReadBE16(rwops.cptr()))
 }
 
-// ReadLE32 (https://wiki.libsdl.org/SDL_ReadLE32)
-func (src *RWops) ReadLE32() uint32 {
-	if src == nil {
+// ReadLE32 reads 32 bits of little-endian data from the RWops and returns in native format.
+// (https://wiki.libsdl.org/SDL_ReadLE32)
+func (rwops *RWops) ReadLE32() uint32 {
+	if rwops == nil {
 		return 0
 	}
-	return uint32(C.SDL_ReadLE32(src.cptr()))
+	return uint32(C.SDL_ReadLE32(rwops.cptr()))
 }
 
-// ReadBE32 (https://wiki.libsdl.org/SDL_ReadBE32)
-func (src *RWops) ReadBE32() uint32 {
-	if src == nil {
+// ReadBE32 reads 32 bits of big-endian data from the RWops and returns in native format.
+// (https://wiki.libsdl.org/SDL_ReadBE32)
+func (rwops *RWops) ReadBE32() uint32 {
+	if rwops == nil {
 		return 0
 	}
-	return uint32(C.SDL_ReadBE32(src.cptr()))
+	return uint32(C.SDL_ReadBE32(rwops.cptr()))
 }
 
-// ReadLE64 (https://wiki.libsdl.org/SDL_ReadLE64)
-func (src *RWops) ReadLE64() uint64 {
-	if src == nil {
+// ReadLE64 reads 64 bits of little-endian data from the RWops and returns in native format.
+// (https://wiki.libsdl.org/SDL_ReadLE64)
+func (rwops *RWops) ReadLE64() uint64 {
+	if rwops == nil {
 		return 0
 	}
-	return uint64(C.SDL_ReadLE64(src.cptr()))
+	return uint64(C.SDL_ReadLE64(rwops.cptr()))
 }
 
-// ReadBE64 (https://wiki.libsdl.org/SDL_ReadBE64)
-func (src *RWops) ReadBE64() uint64 {
-	if src == nil {
+// ReadBE64 reads 64 bits of big-endian data from the RWops and returns in native format.
+// (https://wiki.libsdl.org/SDL_ReadBE64)
+func (rwops *RWops) ReadBE64() uint64 {
+	if rwops == nil {
 		return 0
 	}
-	return uint64(C.SDL_ReadBE64(src.cptr()))
+	return uint64(C.SDL_ReadBE64(rwops.cptr()))
 }
 
-func (dst *RWops) WriteU8(value uint8) uint {
-	if dst == nil {
-		return 0
+// LoadFile_RW loads all the data from an SDL data stream.
+// (https://wiki.libsdl.org/SDL_LoadFile_RW)
+func (src *RWops) LoadFileRW(freesrc bool) (data []byte, size int) {
+	var _size C.size_t
+	var _freesrc C.int = 0
+
+	if freesrc {
+		_freesrc = 1
 	}
-	return uint(C.SDL_WriteU8(dst.cptr(), C.Uint8(value)))
+
+	_data := C.SDL_LoadFile_RW(src.cptr(), &_size, _freesrc)
+	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&data))
+	sliceHeader.Cap = int(_size)
+	sliceHeader.Len = int(_size)
+	sliceHeader.Data = uintptr(_data)
+	size = int(_size)
+	return
 }
 
-// WriteLE16 (https://wiki.libsdl.org/SDL_WriteLE16)
-func (dst *RWops) WriteLE16(value uint16) uint {
-	if dst == nil {
-		return 0
-	}
-	return uint(C.SDL_WriteLE16(dst.cptr(), C.Uint16(value)))
+// LoadFile loads an entire file
+// (https://wiki.libsdl.org/SDL_LoadFile)
+func LoadFile(file string) (data []byte, size int) {
+	return RWFromFile(file, "rb").LoadFileRW(true)
 }
 
-// WriteBE16 (https://wiki.libsdl.org/SDL_WriteBE16)
-func (dst *RWops) WriteBE16(value uint16) uint {
-	if dst == nil {
+// WriteU8 writes a byte to the RWops.
+// (https://wiki.libsdl.org/SDL_WriteU8)
+func (rwops *RWops) WriteU8(value uint8) uint {
+	if rwops == nil {
 		return 0
 	}
-	return uint(C.SDL_WriteBE16(dst.cptr(), C.Uint16(value)))
+	return uint(C.SDL_WriteU8(rwops.cptr(), C.Uint8(value)))
 }
 
-// WriteLE32 (https://wiki.libsdl.org/SDL_WriteLE32)
-func (dst *RWops) WriteLE32(value uint32) uint {
-	if dst == nil {
+// WriteLE16 writes 16 bits in native format to the RWops as little-endian data.
+// (https://wiki.libsdl.org/SDL_WriteLE16)
+func (rwops *RWops) WriteLE16(value uint16) uint {
+	if rwops == nil {
 		return 0
 	}
-	return uint(C.SDL_WriteLE32(dst.cptr(), C.Uint32(value)))
+	return uint(C.SDL_WriteLE16(rwops.cptr(), C.Uint16(value)))
 }
 
-// WriteBE32 (https://wiki.libsdl.org/SDL_WriteBE32)
-func (dst *RWops) WriteBE32(value uint32) uint {
-	if dst == nil {
+// WriteBE16 writes 16 bits in native format to the RWops as big-endian data.
+// (https://wiki.libsdl.org/SDL_WriteBE16)
+func (rwops *RWops) WriteBE16(value uint16) uint {
+	if rwops == nil {
 		return 0
 	}
-	return uint(C.SDL_WriteBE32(dst.cptr(), C.Uint32(value)))
+	return uint(C.SDL_WriteBE16(rwops.cptr(), C.Uint16(value)))
 }
 
-// WriteLE64 (https://wiki.libsdl.org/SDL_WriteLE64)
-func (dst *RWops) WriteLE64(value uint64) uint {
-	if dst == nil {
+// WriteLE32 writes 32 bits in native format to the RWops as little-endian data.
+// (https://wiki.libsdl.org/SDL_WriteLE32)
+func (rwops *RWops) WriteLE32(value uint32) uint {
+	if rwops == nil {
 		return 0
 	}
-	return uint(C.SDL_WriteLE64(dst.cptr(), C.Uint64(value)))
+	return uint(C.SDL_WriteLE32(rwops.cptr(), C.Uint32(value)))
 }
 
-// WriteBE64 (https://wiki.libsdl.org/SDL_WriteBE64)
-func (dst *RWops) WriteBE64(value uint64) uint {
-	if dst == nil {
+// WriteBE32 writes 32 bits in native format to the RWops as big-endian data.
+// (https://wiki.libsdl.org/SDL_WriteBE32)
+func (rwops *RWops) WriteBE32(value uint32) uint {
+	if rwops == nil {
 		return 0
 	}
-	return uint(C.SDL_WriteBE64(dst.cptr(), C.Uint64(value)))
+	return uint(C.SDL_WriteBE32(rwops.cptr(), C.Uint32(value)))
+}
+
+// WriteLE64 writes 64 bits in native format to the RWops as little-endian data.
+// (https://wiki.libsdl.org/SDL_WriteLE64)
+func (rwops *RWops) WriteLE64(value uint64) uint {
+	if rwops == nil {
+		return 0
+	}
+	return uint(C.SDL_WriteLE64(rwops.cptr(), C.Uint64(value)))
+}
+
+// WriteBE64 writes 64 bits in native format to the RWops as big-endian data.
+// (https://wiki.libsdl.org/SDL_WriteBE64)
+func (rwops *RWops) WriteBE64(value uint64) uint {
+	if rwops == nil {
+		return 0
+	}
+	return uint(C.SDL_WriteBE64(rwops.cptr(), C.Uint64(value)))
 }
