@@ -3,7 +3,7 @@ package game
 import (
 	"fmt"
 
-	"github.com/tommyblue/sokoban"
+	"github.com/hajimehoshi/ebiten"
 )
 
 type direction struct {
@@ -11,10 +11,27 @@ type direction struct {
 	dY int
 }
 
-var right = direction{dX: 0, dY: 1}
-var left = direction{dX: 0, dY: -1}
-var up = direction{dX: -1, dY: 0}
-var down = direction{dX: 1, dY: 0}
+var (
+	right = direction{dX: 0, dY: 1}
+	left  = direction{dX: 0, dY: -1}
+	up    = direction{dX: -1, dY: 0}
+	down  = direction{dX: 1, dY: 0}
+)
+
+func (ge *Engine) checkMovements() bool {
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		ge.MoveUp()
+	} else if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		ge.MoveDown()
+	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		ge.MoveRight()
+	} else if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		ge.MoveLeft()
+	} else {
+		return false
+	}
+	return true
+}
 
 // MoveLeft moves... left
 func (ge *Engine) MoveLeft() {
@@ -42,13 +59,13 @@ func (ge *Engine) canMoveThere(d direction) bool {
 	tileID := ge.Game.CurrentLevel.Tiles[newI][newJ]
 
 	// Can't move through walls
-	if tileID == sokoban.Wall {
+	if tileID == Wall {
 		return false
 	}
 	// Can move to box if next tile isn't box or wall
-	if tileID == sokoban.Box || tileID == sokoban.BoxOnTarget {
+	if tileID == Box || tileID == BoxOnTarget {
 		nextTile := ge.Game.CurrentLevel.Tiles[newI+d.dX][newJ+d.dY]
-		return nextTile != sokoban.Box && nextTile != sokoban.BoxOnTarget && nextTile != sokoban.Wall
+		return nextTile != Box && nextTile != BoxOnTarget && nextTile != Wall
 	}
 	return true
 }
@@ -62,17 +79,17 @@ func (ge *Engine) move(d direction) {
 	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ = nextJ
 
 	// Check if a box must be moved
-	if ge.Game.CurrentLevel.Tiles[nextI][nextJ] == sokoban.Box ||
-		ge.Game.CurrentLevel.Tiles[nextI][nextJ] == sokoban.BoxOnTarget {
-		replaceTile := sokoban.Floor
-		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI][nextJ] == sokoban.Target {
-			replaceTile = sokoban.Target
+	if ge.Game.CurrentLevel.Tiles[nextI][nextJ] == Box ||
+		ge.Game.CurrentLevel.Tiles[nextI][nextJ] == BoxOnTarget {
+		replaceTile := Floor
+		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI][nextJ] == Target {
+			replaceTile = Target
 			ge.Game.CurrentLevel.TilesToFix++
 		}
 		ge.Game.CurrentLevel.Tiles[nextI][nextJ] = replaceTile
-		boxTile := sokoban.Box
-		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI+d.dX][nextJ+d.dY] == sokoban.Target {
-			boxTile = sokoban.BoxOnTarget
+		boxTile := Box
+		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI+d.dX][nextJ+d.dY] == Target {
+			boxTile = BoxOnTarget
 			ge.Game.CurrentLevel.TilesToFix--
 		}
 		ge.Game.CurrentLevel.Tiles[nextI+d.dX][nextJ+d.dY] = boxTile
@@ -87,7 +104,7 @@ func (ge *Engine) checkVictory() {
 	}
 }
 
-func (ge *Engine) moveIfPossible(d direction) *sokoban.PlayerPosition {
+func (ge *Engine) moveIfPossible(d direction) *PlayerPosition {
 	if ge.canMoveThere(d) {
 		ge.move(d)
 		ge.checkVictory()

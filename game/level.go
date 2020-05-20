@@ -3,17 +3,41 @@ package game
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
-	"path"
-	"runtime"
 	"strings"
 
-	"github.com/tommyblue/sokoban"
 	"github.com/tommyblue/sokoban/utils"
 )
 
+type Level struct {
+	ID                    int
+	Width                 int
+	Height                int
+	Tiles                 [][]Tile
+	CurrentPlayerPosition *PlayerPosition
+	TilesToFix            int
+}
+
+type Tile string
+
+const (
+	Wall        Tile = "#"
+	Target      Tile = "."
+	Floor       Tile = "_"
+	Box         Tile = "$"
+	BoxOnTarget Tile = "+"
+	Empty       Tile = "~"
+	Player      Tile = "@"
+)
+
+type PlayerPosition struct {
+	PositionI int
+	PositionJ int
+}
+
 func (ge *Engine) loadLevel(levelID int) {
-	ge.Game.CurrentLevel = &sokoban.Level{}
+	ge.Game.CurrentLevel = &Level{}
 	ge.Game.CurrentLevel.CloneFrom(ge.Game.Levels[levelID])
 }
 
@@ -40,8 +64,8 @@ func (ge *Engine) loadLevels() {
 }
 
 func (ge *Engine) parseLevelString(
-	line string, currentLevelID int, tmpLevel *sokoban.Level,
-) (int, *sokoban.Level, error) {
+	line string, currentLevelID int, tmpLevel *Level,
+) (int, *Level, error) {
 	tmpLevelID := currentLevelID
 	if line == ";END" {
 		tmpLevel.Finalize()
@@ -56,12 +80,12 @@ func (ge *Engine) parseLevelString(
 			ge.Game.Levels[tmpLevel.ID] = tmpLevel
 		}
 		tmpLevelID++
-		tmpLevel = &sokoban.Level{ID: tmpLevelID}
+		tmpLevel = &Level{ID: tmpLevelID}
 	} else {
 		strTiles := strings.Split(line, "")
-		var tiles []sokoban.Tile
+		var tiles []Tile
 		for _, t := range strTiles {
-			tiles = append(tiles, sokoban.Tile(t))
+			tiles = append(tiles, Tile(t))
 		}
 		tmpLevel.Tiles = append(tmpLevel.Tiles, tiles)
 	}
@@ -69,13 +93,7 @@ func (ge *Engine) parseLevelString(
 }
 
 func getLevelsFile() (*os.File, func()) {
-	_, filename, _, ok := runtime.Caller(1)
-	if !ok {
-		panic("error")
-	}
-	filepath := path.Join(path.Dir(filename), "../levels.txt")
-
-	filepath = utils.GetRelativePath("../levels.txt")
+	filepath := utils.GetRelativePath("../levels.txt")
 	file, err := os.Open(filepath)
 
 	closeFn := func() {
@@ -84,4 +102,52 @@ func getLevelsFile() (*os.File, func()) {
 
 	utils.Check(err)
 	return file, closeFn
+}
+
+func (l *Level) CloneFrom(orig *Level) {
+	l.ID = orig.ID
+	l.Width = orig.Width
+	l.Height = orig.Height
+	l.TilesToFix = orig.TilesToFix
+	l.CurrentPlayerPosition = &PlayerPosition{
+		PositionI: orig.CurrentPlayerPosition.PositionI,
+		PositionJ: orig.CurrentPlayerPosition.PositionJ,
+	}
+	for _, row := range orig.Tiles {
+		var tiles []Tile
+		tiles = append(tiles, row...)
+		l.Tiles = append(l.Tiles, tiles)
+	}
+}
+
+func (l *Level) Finalize() {
+	h, w := 0, 0
+	for i, row := range l.Tiles {
+		h = i + 1
+		if w < len(row) {
+			w = len(row)
+		}
+		for j, tile := range row {
+			if tile == Player {
+				l.CurrentPlayerPosition = &PlayerPosition{
+					PositionI: i,
+					PositionJ: j,
+				}
+			}
+			if tile == Target {
+				l.TilesToFix++
+			}
+		}
+	}
+	l.Height = h
+	l.Width = w
+
+	if utils.IsDebugEnv() {
+		l.printInfo()
+	}
+}
+
+func (l *Level) printInfo() {
+	fmt.Printf("ID: %d\n", l.ID)
+	fmt.Printf("Size: %dx%d\n", l.Width, l.Height)
 }
