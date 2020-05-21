@@ -2,7 +2,7 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/tommyblue/sokoban/game"
+	"github.com/tommyblue/sokoban"
 )
 
 func init() {
@@ -10,7 +10,7 @@ func init() {
 }
 
 func main() {
-	if err := game.Run(); err != nil {
+	if err := sokoban.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

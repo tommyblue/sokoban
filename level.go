@@ -1,4 +1,4 @@
-package game
+package sokoban
 
 import (
 	"bufio"
@@ -93,7 +93,7 @@ func (ge *Engine) parseLevelString(
 }
 
 func getLevelsFile() (*os.File, func()) {
-	filepath := utils.GetRelativePath("../levels.txt")
+	filepath := utils.GetRelativePath("./levels.txt")
 	file, err := os.Open(filepath)
 
 	closeFn := func() {
