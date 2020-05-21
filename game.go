@@ -2,65 +2,16 @@ package sokoban
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	screenWidth  = 800
-	screenHeight = 600
-)
-
-type Game struct {
-	CurrentLevel *Level
-	Levels       map[int]*Level
-}
-
-type GameState struct {
-	ShowSplash        bool
-	ShowLevel         bool
-	ShowLevelComplete bool
-}
-
-// Engine represents the game
-type Engine struct {
-	GameState *GameState
-	Game      *Game
-	UI        map[Tile]*ebiten.Image
-	movedAt   time.Time
-}
-
-type TileDesc struct {
-	X int
-	Y int
-	W int
-	H int
-}
-
-func (ge *Engine) Update(screen *ebiten.Image) error {
-	if time.Since(ge.movedAt) > 200*time.Millisecond {
-		if ge.checkMovements() {
-			ge.movedAt = time.Now()
-		}
-	}
-	return nil
-}
-
-func (ge *Engine) Draw(screen *ebiten.Image) {
-	ge.drawLevel(screen)
-}
-
-func (ge *Engine) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return screenWidth, screenHeight
-}
-
-func (ge *Engine) drawLevel(screen *ebiten.Image) {
-	for i, row := range ge.Game.CurrentLevel.Tiles {
+func (ge *engine) drawLevel(screen *ebiten.Image) {
+	for i, row := range ge.currentLevel.tiles {
 		for j, tileID := range row {
-			im := ge.getImage(ge.Game.CurrentLevel, i, j, tileID)
+			im := ge.getImage(ge.currentLevel, i, j, tileID)
 			if im == nil {
 				continue
 			}
@@ -77,54 +28,31 @@ func (ge *Engine) drawLevel(screen *ebiten.Image) {
 	}
 }
 
-func (ge *Engine) getImage(level *Level, i, j int, tileID Tile) *ebiten.Image {
-	if tileID == Player && (level.CurrentPlayerPosition.PositionI != i || level.CurrentPlayerPosition.PositionJ != j) {
+func (ge *engine) getImage(level *level, i, j int, tileID tile) *ebiten.Image {
+	if tileID == player && (level.currentPlayerPosition.i != i || level.currentPlayerPosition.j != j) {
 		// player has moved, return floor tile
-		return ge.UI[Floor]
+		return ge.ui[floor]
 	}
 
-	if level.CurrentPlayerPosition.PositionI == i && level.CurrentPlayerPosition.PositionJ == j {
+	if level.currentPlayerPosition.i == i && level.currentPlayerPosition.j == j {
 		// The player has moved here
-		return ge.UI[Player]
+		return ge.ui[player]
 	}
-	r, ok := ge.UI[tileID]
+	r, ok := ge.ui[tileID]
 	if !ok {
 		return nil
 	}
 	return r
 }
 
-func Run() error {
-	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetWindowTitle("Sokokban")
-
-	ge := &Engine{
-		GameState: &GameState{
-			ShowSplash:        false,
-			ShowLevel:         false,
-			ShowLevelComplete: false,
-		},
-		Game: &Game{
-			Levels: map[int]*Level{},
-		},
-		UI: make(map[Tile]*ebiten.Image),
-	}
-	ge.loadLevels()
-	ge.loadLevel(1)
-
-	ge.loadImages()
-
-	return ebiten.RunGame(ge)
-}
-
-func (ge *Engine) loadImages() {
-	images := map[Tile]string{
-		BoxOnTarget: "box-ok.png",
-		Box:         "box.png",
-		Floor:       "floor.png",
-		Player:      "player.png",
-		Target:      "target.png",
-		Wall:        "wall.png",
+func (ge *engine) loadImages() {
+	images := map[tile]string{
+		boxOnTarget: "box-ok.png",
+		box:         "box.png",
+		floor:       "floor.png",
+		player:      "player.png",
+		target:      "target.png",
+		wall:        "wall.png",
 	}
 	for k, i := range images {
 		imgPath := fmt.Sprintf("./assets/%s", i)
@@ -132,6 +60,6 @@ func (ge *Engine) loadImages() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		ge.UI[k] = img
+		ge.ui[k] = img
 	}
 }

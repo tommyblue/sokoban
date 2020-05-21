@@ -18,96 +18,73 @@ var (
 	down  = direction{dX: 1, dY: 0}
 )
 
-func (ge *Engine) checkMovements() bool {
+func (ge *engine) checkMovements() bool {
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		ge.MoveUp()
+		ge.moveIfPossible(up)
 	} else if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		ge.MoveDown()
+		ge.moveIfPossible(down)
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		ge.MoveRight()
+		ge.moveIfPossible(right)
 	} else if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		ge.MoveLeft()
+		ge.moveIfPossible(left)
 	} else {
 		return false
 	}
 	return true
 }
 
-// MoveLeft moves... left
-func (ge *Engine) MoveLeft() {
-	ge.moveIfPossible(left)
-}
-
-// MoveRight moves... right
-func (ge *Engine) MoveRight() {
-	ge.moveIfPossible(right)
-}
-
-// MoveUp moves... up
-func (ge *Engine) MoveUp() {
-	ge.moveIfPossible(up)
-}
-
-// MoveDown moves... down
-func (ge *Engine) MoveDown() {
-	ge.moveIfPossible(down)
-}
-
-func (ge *Engine) canMoveThere(d direction) bool {
-	newI := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI + d.dX
-	newJ := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ + d.dY
-	tileID := ge.Game.CurrentLevel.Tiles[newI][newJ]
-
-	// Can't move through walls
-	if tileID == Wall {
-		return false
-	}
-	// Can move to box if next tile isn't box or wall
-	if tileID == Box || tileID == BoxOnTarget {
-		nextTile := ge.Game.CurrentLevel.Tiles[newI+d.dX][newJ+d.dY]
-		return nextTile != Box && nextTile != BoxOnTarget && nextTile != Wall
-	}
-	return true
-}
-
-func (ge *Engine) move(d direction) {
-	currI := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI
-	currJ := ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ
-	nextI := currI + d.dX
-	nextJ := currJ + d.dY
-	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionI = nextI
-	ge.Game.CurrentLevel.CurrentPlayerPosition.PositionJ = nextJ
-
-	// Check if a box must be moved
-	if ge.Game.CurrentLevel.Tiles[nextI][nextJ] == Box ||
-		ge.Game.CurrentLevel.Tiles[nextI][nextJ] == BoxOnTarget {
-		replaceTile := Floor
-		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI][nextJ] == Target {
-			replaceTile = Target
-			ge.Game.CurrentLevel.TilesToFix++
-		}
-		ge.Game.CurrentLevel.Tiles[nextI][nextJ] = replaceTile
-		boxTile := Box
-		if ge.Game.Levels[ge.Game.CurrentLevel.ID].Tiles[nextI+d.dX][nextJ+d.dY] == Target {
-			boxTile = BoxOnTarget
-			ge.Game.CurrentLevel.TilesToFix--
-		}
-		ge.Game.CurrentLevel.Tiles[nextI+d.dX][nextJ+d.dY] = boxTile
-	}
-}
-
-func (ge *Engine) checkVictory() {
-	if ge.Game.CurrentLevel.TilesToFix == 0 {
-		fmt.Println("Victory!")
-		// Move to next level
-		ge.loadLevel(ge.Game.CurrentLevel.ID + 1)
-	}
-}
-
-func (ge *Engine) moveIfPossible(d direction) *PlayerPosition {
+func (ge *engine) moveIfPossible(d direction) *playerPosition {
 	if ge.canMoveThere(d) {
 		ge.move(d)
 		ge.checkVictory()
 	}
-	return ge.Game.CurrentLevel.CurrentPlayerPosition
+	return ge.currentLevel.currentPlayerPosition
+}
+
+func (ge *engine) canMoveThere(d direction) bool {
+	p := ge.currentLevel.currentPlayerPosition
+	nextTile := ge.currentLevel.tiles[p.i+d.dX][p.j+d.dY]
+
+	// Can't move through walls
+	if nextTile == wall {
+		return false
+	}
+	// Can move a box if the tile after the box isn't another box or a wall
+	if nextTile == box || nextTile == boxOnTarget {
+		nextTile := ge.currentLevel.tiles[p.i+d.dX+d.dX][p.j+d.dY+d.dY]
+		return nextTile != box && nextTile != boxOnTarget && nextTile != wall
+	}
+	// In any other case, the player can move
+	return true
+}
+
+func (ge *engine) move(d direction) {
+	nextI := ge.currentLevel.currentPlayerPosition.i + d.dX
+	nextJ := ge.currentLevel.currentPlayerPosition.j + d.dY
+	ge.currentLevel.currentPlayerPosition.i = nextI
+	ge.currentLevel.currentPlayerPosition.j = nextJ
+
+	// Check if a box must be moved
+	if ge.currentLevel.tiles[nextI][nextJ] == box || ge.currentLevel.tiles[nextI][nextJ] == boxOnTarget {
+		replaceTile := floor
+		if ge.levels[ge.currentLevel.id].tiles[nextI][nextJ] == target {
+			replaceTile = target
+			ge.currentLevel.tilesToFix++
+		}
+		ge.currentLevel.tiles[nextI][nextJ] = replaceTile
+		boxTile := box
+		if ge.levels[ge.currentLevel.id].tiles[nextI+d.dX][nextJ+d.dY] == target {
+			boxTile = boxOnTarget
+			ge.currentLevel.tilesToFix--
+		}
+		ge.currentLevel.tiles[nextI+d.dX][nextJ+d.dY] = boxTile
+	}
+}
+
+func (ge *engine) checkVictory() {
+	if ge.currentLevel.tilesToFix == 0 {
+		fmt.Println("Victory!")
+		// Move to next level
+		ge.loadLevel(ge.currentLevel.id + 1)
+	}
 }

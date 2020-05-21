@@ -3,45 +3,43 @@ package sokoban
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 
 	"github.com/tommyblue/sokoban/utils"
 )
 
-type Level struct {
-	ID                    int
-	Width                 int
-	Height                int
-	Tiles                 [][]Tile
-	CurrentPlayerPosition *PlayerPosition
-	TilesToFix            int
+type level struct {
+	id                    int
+	width                 int
+	height                int
+	tiles                 [][]tile
+	currentPlayerPosition *playerPosition
+	tilesToFix            int
 }
 
-type Tile string
+type tile string
 
 const (
-	Wall        Tile = "#"
-	Target      Tile = "."
-	Floor       Tile = "_"
-	Box         Tile = "$"
-	BoxOnTarget Tile = "+"
-	Empty       Tile = "~"
-	Player      Tile = "@"
+	wall        tile = "#"
+	target      tile = "."
+	floor       tile = "_"
+	box         tile = "$"
+	boxOnTarget tile = "+"
+	player      tile = "@"
 )
 
-type PlayerPosition struct {
-	PositionI int
-	PositionJ int
+type playerPosition struct {
+	i int
+	j int
 }
 
-func (ge *Engine) loadLevel(levelID int) {
-	ge.Game.CurrentLevel = &Level{}
-	ge.Game.CurrentLevel.CloneFrom(ge.Game.Levels[levelID])
+func (ge *engine) loadLevel(levelID int) {
+	ge.currentLevel = &level{}
+	ge.currentLevel.cloneFrom(ge.levels[levelID])
 }
 
-func (ge *Engine) loadLevels() {
+func (ge *engine) loadLevels() {
 	file, closeFn := getLevelsFile()
 	defer closeFn()
 	levelID := 0
@@ -63,31 +61,31 @@ func (ge *Engine) loadLevels() {
 	}
 }
 
-func (ge *Engine) parseLevelString(
-	line string, currentLevelID int, tmpLevel *Level,
-) (int, *Level, error) {
+func (ge *engine) parseLevelString(
+	line string, currentLevelID int, tmpLevel *level,
+) (int, *level, error) {
 	tmpLevelID := currentLevelID
 	if line == ";END" {
-		tmpLevel.Finalize()
-		ge.Game.Levels[tmpLevel.ID] = tmpLevel
+		tmpLevel.finalize()
+		ge.levels[tmpLevel.id] = tmpLevel
 		return tmpLevelID, tmpLevel, errors.New("Reached end of file")
 	}
 
 	if strings.HasPrefix(line, ";LEVEL") {
 		// Do not add an empty level if this is the first one
 		if tmpLevel != nil {
-			tmpLevel.Finalize()
-			ge.Game.Levels[tmpLevel.ID] = tmpLevel
+			tmpLevel.finalize()
+			ge.levels[tmpLevel.id] = tmpLevel
 		}
 		tmpLevelID++
-		tmpLevel = &Level{ID: tmpLevelID}
+		tmpLevel = &level{id: tmpLevelID}
 	} else {
 		strTiles := strings.Split(line, "")
-		var tiles []Tile
+		var tiles []tile
 		for _, t := range strTiles {
-			tiles = append(tiles, Tile(t))
+			tiles = append(tiles, tile(t))
 		}
-		tmpLevel.Tiles = append(tmpLevel.Tiles, tiles)
+		tmpLevel.tiles = append(tmpLevel.tiles, tiles)
 	}
 	return tmpLevelID, tmpLevel, nil
 }
@@ -104,50 +102,41 @@ func getLevelsFile() (*os.File, func()) {
 	return file, closeFn
 }
 
-func (l *Level) CloneFrom(orig *Level) {
-	l.ID = orig.ID
-	l.Width = orig.Width
-	l.Height = orig.Height
-	l.TilesToFix = orig.TilesToFix
-	l.CurrentPlayerPosition = &PlayerPosition{
-		PositionI: orig.CurrentPlayerPosition.PositionI,
-		PositionJ: orig.CurrentPlayerPosition.PositionJ,
+func (l *level) cloneFrom(orig *level) {
+	l.id = orig.id
+	l.width = orig.width
+	l.height = orig.height
+	l.tilesToFix = orig.tilesToFix
+	l.currentPlayerPosition = &playerPosition{
+		i: orig.currentPlayerPosition.i,
+		j: orig.currentPlayerPosition.j,
 	}
-	for _, row := range orig.Tiles {
-		var tiles []Tile
+	for _, row := range orig.tiles {
+		var tiles []tile
 		tiles = append(tiles, row...)
-		l.Tiles = append(l.Tiles, tiles)
+		l.tiles = append(l.tiles, tiles)
 	}
 }
 
-func (l *Level) Finalize() {
+func (l *level) finalize() {
 	h, w := 0, 0
-	for i, row := range l.Tiles {
+	for i, row := range l.tiles {
 		h = i + 1
 		if w < len(row) {
 			w = len(row)
 		}
 		for j, tile := range row {
-			if tile == Player {
-				l.CurrentPlayerPosition = &PlayerPosition{
-					PositionI: i,
-					PositionJ: j,
+			if tile == player {
+				l.currentPlayerPosition = &playerPosition{
+					i: i,
+					j: j,
 				}
 			}
-			if tile == Target {
-				l.TilesToFix++
+			if tile == target {
+				l.tilesToFix++
 			}
 		}
 	}
-	l.Height = h
-	l.Width = w
-
-	if utils.IsDebugEnv() {
-		l.printInfo()
-	}
-}
-
-func (l *Level) printInfo() {
-	fmt.Printf("ID: %d\n", l.ID)
-	fmt.Printf("Size: %dx%d\n", l.Width, l.Height)
+	l.height = h
+	l.width = w
 }
