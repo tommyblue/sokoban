@@ -5,6 +5,11 @@ Imabayashi using the [Ebiten](https://ebiten.org/) 2D game library.
 
 ![Alt text](screenshot.jpg?raw=true "Screenshot")
 
+## How to play
+
+Clone the repository and run the game with `make run`.
+The player moves using arrows. Press `escape` to quit the game
+
 ## Levels
 
 The levels are stored in the [levels.txt](./levels.txt) file.
@@ -37,3 +42,9 @@ govet                          Run go vet on the project
 run                            Run the app
 test                           Run go tests
 ```
+
+## To do
+
+- [ ] Save game and continue from last level to be completed
+- [ ] Add menus
+- [ ] Add background music
