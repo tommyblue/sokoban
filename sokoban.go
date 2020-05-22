@@ -1,6 +1,7 @@
 package sokoban
 
 import (
+	"errors"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -10,6 +11,8 @@ const (
 	screenWidth  = 800
 	screenHeight = 600
 )
+
+var regularTermination = errors.New("regular termination")
 
 // Engine represents the game
 type engine struct {
@@ -36,6 +39,10 @@ func Run() error {
 }
 
 func (ge *engine) Update(screen *ebiten.Image) error {
+	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+		return regularTermination
+	}
+
 	if time.Since(ge.movedAt) > 200*time.Millisecond {
 		if ge.checkMovements() {
 			ge.movedAt = time.Now()
