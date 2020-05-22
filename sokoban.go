@@ -1,97 +1,60 @@
 package sokoban
 
 import (
-	"fmt"
+	"errors"
+	"time"
 
-	"github.com/tommyblue/sokoban/utils"
+	"github.com/hajimehoshi/ebiten"
 )
-
-type Tile string
 
 const (
-	Wall        Tile = "#"
-	Target      Tile = "."
-	Floor       Tile = "_"
-	Box         Tile = "$"
-	BoxOnTarget Tile = "+"
-	Empty       Tile = "~"
-	Player      Tile = "@"
+	screenWidth  = 800
+	screenHeight = 600
 )
 
-// Level describes a level of the game
-type Level struct {
-	ID                    int
-	Width                 int
-	Height                int
-	Tiles                 [][]Tile
-	CurrentPlayerPosition *PlayerPosition
-	TilesToFix            int
+var regularTermination = errors.New("regular termination")
+
+// Engine represents the game
+type engine struct {
+	currentLevel *level
+	levels       map[int]*level
+	ui           map[tile]*ebiten.Image
+	movedAt      time.Time
 }
 
-// GameState is the state of the game
-type GameState struct {
-	IsRunning         bool
-	ShowSplash        bool
-	ShowLevel         bool
-	ShowLevelComplete bool
-}
+func Run() error {
+	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
+	ebiten.SetWindowTitle("Sokokban")
 
-type PlayerPosition struct {
-	PositionI int
-	PositionJ int
-}
-
-type Game struct {
-	CurrentLevel *Level
-	Levels       map[int]*Level
-}
-
-func (l *Level) CloneFrom(orig *Level) {
-	l.ID = orig.ID
-	l.Width = orig.Width
-	l.Height = orig.Height
-	l.TilesToFix = orig.TilesToFix
-	l.CurrentPlayerPosition = &PlayerPosition{
-		PositionI: orig.CurrentPlayerPosition.PositionI,
-		PositionJ: orig.CurrentPlayerPosition.PositionJ,
+	ge := &engine{
+		levels: map[int]*level{},
+		ui:     make(map[tile]*ebiten.Image),
 	}
-	for _, row := range orig.Tiles {
-		var tiles []Tile
-		for _, tile := range row {
-			tiles = append(tiles, tile)
-		}
-		l.Tiles = append(l.Tiles, tiles)
-	}
+	ge.loadLevels()
+	ge.loadLevel(1)
+
+	ge.loadImages()
+
+	return ebiten.RunGame(ge)
 }
 
-func (l *Level) Finalize() {
-	h, w := 0, 0
-	for i, row := range l.Tiles {
-		h = i + 1
-		if w < len(row) {
-			w = len(row)
-		}
-		for j, tile := range row {
-			if tile == Player {
-				l.CurrentPlayerPosition = &PlayerPosition{
-					PositionI: i,
-					PositionJ: j,
-				}
-			}
-			if tile == Target {
-				l.TilesToFix++
-			}
+func (ge *engine) Update(screen *ebiten.Image) error {
+	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+		return regularTermination
+	}
+
+	if time.Since(ge.movedAt) > 200*time.Millisecond {
+		if ge.checkMovements() {
+			ge.movedAt = time.Now()
 		}
 	}
-	l.Height = h
-	l.Width = w
-
-	if utils.IsDebugEnv() {
-		l.printInfo()
-	}
+	return nil
 }
 
-func (l *Level) printInfo() {
-	fmt.Printf("ID: %d\n", l.ID)
-	fmt.Printf("Size: %dx%d\n", l.Width, l.Height)
+func (ge *engine) Draw(screen *ebiten.Image) {
+	ge.drawLevel(screen)
+}
+
+func (ge *engine) Layout(outsideWidth, outsideHeight int) (int, int) {
+	return screenWidth, screenHeight
 }

@@ -1,11 +1,16 @@
 package main
 
 import (
-	"github.com/tommyblue/sokoban/game"
+	log "github.com/sirupsen/logrus"
+	"github.com/tommyblue/sokoban"
 )
 
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
+
 func main() {
-	ge := game.InitGame()
-	defer ge.GUI.Close()
-	game.MainLoop(ge)
+	if err := sokoban.Run(); err != nil {
+		log.Fatal(err)
+	}
 }

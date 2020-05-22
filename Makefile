@@ -7,7 +7,7 @@ run: ## Run the app
 	go run ./cmd/sokoban/
 
 build: ## Build binary in the local env
-	go build -mod=vendor -i -v -o sokoban-bin ./cmd/sokobango get /
+	go build -i -v -o sokoban ./cmd/sokoban
 
 govet: ## Run go vet on the project
 	go vet ./...
