@@ -1,21 +1,21 @@
 # Sokoban
 
 A Go implementation of the famous puzzle game [Sokoban](http://www.sokoban.jp/) by Hiroyuki
-Imabayashi.
+Imabayashi using the [Ebiten](https://ebiten.org/) 2D game library.
 
 ![Alt text](screenshot.jpg?raw=true "Screenshot")
 
 ## Levels
 
-The levels are stored as text file in the `assets/levels/` folder.
-Each file contains the matrix of the level where each tile can have one of these values:
+The levels are stored in the [levels.txt](./levels.txt) file.
+Each section contains the matrix of the level where each tile can have one of these values:
 
 - `@`: player
 - `#`: wall
 - `$`: box
 - `.`: target (where to move the box)
 - `+`: box on a target
-- `~`: empty space, where the player/boxes can be moved
+- `_`: empty space, where the player/boxes can be moved
 
 ## Assets
 
@@ -25,8 +25,15 @@ license.
 
 ## Setup
 
-You need SDL2 installed. You can find the instructions for supported systems in the [Go-SDL2 page](https://github.com/veandco/go-sdl2)
+Ebiten has some requirements, please take a look at its [install page](https://ebiten.org/documents/install.html)
 
-## Compile and run
+## Make commands
 
-`DEBUG=1 go run cmd/sokoban/main.go`
+This is the output of `make help`:
+
+```
+build                          Build binary in the local env
+govet                          Run go vet on the project
+run                            Run the app
+test                           Run go tests
+```
